@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CRF 单元配置原型</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #f5f5f5; color: #243245; font-family: "Microsoft YaHei", "PingFang SC", sans-serif; }
+    .page { display: grid; grid-template-columns: 318px 1fr; gap: 26px; min-height: 100vh; padding: 18px 12px 18px 24px; align-items: start; }
+    .column { min-height: calc(100vh - 36px); }
+    .library-column { background: #fff; border: 1px solid #cfcfcf; }
+    .selected-column { background: #f3f3f3; border: 0; padding: 0 0 0 8px; }
+    .workspace { display: grid; grid-template-columns: minmax(560px, 1fr) 390px; gap: 18px; min-height: calc(100vh - 36px); }
+    .metrics-column { background: #fff; border: 1px solid #d7dce5; padding: 0 12px 14px; }
+    .col-header { padding: 4px 6px 8px; }
+    .library-column .col-header, .library-column .search-wrap { padding-left: 10px; padding-right: 10px; }
+    .col-title { font-size: 18px; font-weight: 700; color: #1f3550; }
+    .col-subtitle { margin-top: 4px; font-size: 12px; color: #666; }
+    .search-wrap { padding: 8px 14px 12px; }
+    .search-input { width: 100%; height: 28px; border: 1px solid #9a9a9a; padding: 0 8px; font-size: 13px; }
+    .unit-library { display: grid; grid-template-columns: 78px 1fr; border-top: 1px solid #9a9a9a; }
+    .category-nav { border-right: 1px solid #9a9a9a; min-height: 620px; }
+    .category-btn { width: 100%; height: 40px; border: 0; border-bottom: 1px solid #9a9a9a; background: #fff; font-size: 16px; color: #23374f; cursor: pointer; }
+    .category-btn.active { background: #f0f5fb; font-weight: 700; }
+    .library-list { padding: 14px 18px; display: flex; flex-direction: column; gap: 12px; min-height: 620px; }
+    .unit-option { display: flex; align-items: flex-start; gap: 8px; font-size: 16px; line-height: 1.35; color: #23374f; }
+    .unit-option input, .metric-row input { margin-top: 3px; width: 15px; height: 15px; }
+    .yellow { color: #f0c000 !important; }
+    .selected-column .col-header, .metrics-column .col-header { padding: 2px 0 10px; }
+    .selected-column .col-title { font-size: 19px; }
+    .selected-wrap { padding: 0 0 14px; }
+    .selected-toolbar { display: flex; align-items: center; justify-content: space-between; padding: 2px 6px 10px 0; color: #666; font-size: 12px; }
+    .link-btn { border: 0; background: transparent; color: #1473e6; cursor: pointer; font-size: 12px; padding: 0; }
+    .selected-list { display: flex; flex-direction: column; gap: 12px; max-height: calc(100vh - 108px); overflow: auto; padding: 0 10px 0 0; }
+    .selected-card { border: 1px solid #969696; border-radius: 12px; background: #fff; padding: 10px 18px 0; }
+    .selected-card.active { box-shadow: inset 0 0 0 2px #3b82f6; }
+    .selected-top { display: flex; justify-content: space-between; gap: 10px; }
+    .selected-name { font-size: 16px; color: #1f3550; font-weight: 500; }
+    .selected-desc { margin-top: 4px; font-size: 12px; color: #5f6b78; line-height: 1.35; }
+    .selected-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+    .tag { border: 1px solid #808080; border-radius: 999px; padding: 0 7px; font-size: 11px; line-height: 18px; }
+    .selected-actions { display: flex; align-items: center; gap: 8px; }
+    .icon-btn { border: 0; background: transparent; cursor: pointer; font-size: 18px; line-height: 1; color: #111; padding: 0; }
+    .order-no { margin-top: 4px; text-align: right; color: #1f3550; font-size: 22px; line-height: 1; padding-bottom: 10px; }
+    .metric-table { margin-top: 8px; border-top: 1px solid #ddd; }
+    .metric-header, .metric-row { display: grid; grid-template-columns: 28px 1.8fr 1fr 1.2fr; align-items: center; column-gap: 8px; min-height: 38px; font-size: 13px; border-bottom: 1px solid #ececec; }
+    .metric-header { color: #2c4360; font-weight: 700; background: #fafafa; }
+    .metric-row { cursor: pointer; }
+    .metric-row.checked { background: #f3f6fb; }
+    .metric-cell { padding: 6px 0; color: #34495e; }
+    .metric-cell.name { display: flex; align-items: center; gap: 8px; }
+    .empty { padding: 40px 16px; color: #7c8796; font-size: 13px; text-align: center; }
+    @media (max-width: 1280px) { .page { grid-template-columns: 1fr; padding: 14px; } .column { min-height: auto; } .library-list, .category-nav { min-height: auto; } .selected-column { padding: 0; } .workspace { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <section class="column library-column">
+      <div class="col-header">
+        <div class="col-title">单元库</div>
+        <div class="col-subtitle">单击“✔”添加和移除单元</div>
+      </div>
+      <div class="search-wrap">
+        <input id="searchInput" class="search-input" placeholder="输入单元名称搜索" />
+      </div>
+      <div class="unit-library">
+        <div id="categoryList" class="category-nav"></div>
+        <div id="libraryList" class="library-list"></div>
+      </div>
+    </section>
+
+    <section class="column selected-column">
+      <div class="workspace">
+        <div>
+          <div class="col-header">
+            <div class="col-title">CRF选择的单元 <span id="selectedCount">(0)</span></div>
+            <div class="col-subtitle">单击“⚙”查看指标，单击“🗑”移除选中的单元</div>
+          </div>
+          <div class="selected-wrap">
+            <div class="selected-toolbar">
+              <span>单击“⚙”切换右侧指标面板</span>
+              <button id="clearBtn" class="link-btn">清空选择</button>
+            </div>
+            <div id="selectedList" class="selected-list"></div>
+          </div>
+        </div>
+        <aside class="metrics-column">
+          <div class="col-header">
+            <div class="col-title" id="metricTitle">指标面板</div>
+            <div class="col-subtitle" id="metricSubtitle">请先在中间区域点击某个单元的设置图标</div>
+          </div>
+          <div id="metricPanelBody"></div>
+        </aside>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const categories = ["合规", "诊疗", "体征", "检查", "量表", "事件"];
+    const units = [{"id": "unit-2", "code": 1, "name": "知情同意书", "displayName": "知情同意书", "description": "当前为图片，后续DCT实现电子知情同意", "ocr": null, "category": "合规", "image": "有", "metrics": [], "isYellow": false}, {"id": "unit-3", "code": 2, "name": "试验用药", "displayName": "试验用药", "description": "用于药物临床试验的药物发放，和备用药启用", "ocr": null, "category": "合规", "image": "有", "metrics": [], "isYellow": false}, {"id": "unit-4", "code": 3, "name": "合并用药（序号、药物名称、治疗疾病、剂量、单位、频次、给药途径、开始时间、结束时间、是否继续）", "displayName": "合并用药", "description": "", "ocr": "有", "category": "合规", "image": "有", "metrics": ["序号", "药物名称", "治疗疾病", "剂量", "单位", "频次", "给药途径", "开始时间", "结束时间", "是否继续"], "isYellow": true}, {"id": "unit-5", "code": 1000, "name": "基本信息（民族、居住地址）", "displayName": "基本信息", "description": "包含患者的基本信息，如民族、居住地址", "ocr": null, "category": "诊疗", "image": "NA", "metrics": ["民族", "居住地址"], "isYellow": true}, {"id": "unit-6", "code": 1001, "name": "门诊记录", "displayName": "门诊记录", "description": "科研平台尚未实现具体功能，管理服务包的下发不包含", "ocr": null, "category": "诊疗", "image": "有", "metrics": [], "isYellow": false}, {"id": "unit-7", "code": 1002, "name": "入院记录", "displayName": "入院记录", "description": "出院病历的一部分，包含主诉、既往史和体格", "ocr": null, "category": "诊疗", "image": "有", "metrics": [], "isYellow": false}, {"id": "unit-8", "code": 1003, "name": "手术记录", "displayName": "手术记录", "description": "出院病历的一部分，包含主要心血管术式", "ocr": null, "category": "诊疗", "image": "有", "metrics": [], "isYellow": false}, {"id": "unit-9", "code": 1004, "name": "出院记录", "displayName": "出院记录", "description": "出院病历的一部分，包含出院带药，出院带药会同步到合并用药", "ocr": null, "category": "诊疗", "image": "有", "metrics": [], "isYellow": false}, {"id": "unit-10", "code": 1005, "name": "既往史（是否吸烟、是否饮酒、既往半年以上高原旅居史）", "displayName": "既往史", "description": "", "ocr": "有", "category": "诊疗", "image": "有", "metrics": ["是否吸烟", "是否饮酒", "既往半年以上高原旅居史"], "isYellow": true}, {"id": "unit-11", "code": 1006, "name": "病史采集（诊断、既往病史、家族史）", "displayName": "病史采集", "description": "", "ocr": "有", "category": "诊疗", "image": "有", "metrics": ["诊断", "既往病史", "家族史"], "isYellow": true}, {"id": "unit-12", "code": 1007, "name": "用药史（序号、药物名称、治疗疾病、单次剂量、给药频次、开始时间、结束时间、是否继续）", "displayName": "用药史", "description": "", "ocr": "有", "category": "诊疗", "image": "有", "metrics": ["序号", "药物名称", "治疗疾病", "单次剂量", "给药频次", "开始时间", "结束时间", "是否继续"], "isYellow": true}, {"id": "unit-13", "code": 2001, "name": "体重", "displayName": "体重", "description": "可设备采集、患者端录入或入院记录同步", "ocr": null, "category": "体征", "image": "NA", "metrics": [], "isYellow": false}, {"id": "unit-14", "code": 2002, "name": "心率", "displayName": "心率", "description": "可设备采集、患者端录入或入院记录同步", "ocr": null, "category": "体征", "image": "NA", "metrics": [], "isYellow": false}, {"id": "unit-15", "code": 2003, "name": "血压", "displayName": "血压", "description": "可设备采集、患者端录入或入院记录同步", "ocr": null, "category": "体征", "image": "NA", "metrics": [], "isYellow": false}, {"id": "unit-16", "code": 2004, "name": "血糖", "displayName": "血糖", "description": "不可设备采集，可患者端录入或检查同步", "ocr": null, "category": "体征", "image": "NA", "metrics": [], "isYellow": false}, {"id": "unit-17", "code": 2005, "name": "出入量", "displayName": "出入量", "description": "不可设备采集，可患者端录入", "ocr": null, "category": "体征", "image": "NA", "metrics": [], "isYellow": false}, {"id": "unit-18", "code": 2006, "name": "体温", "displayName": "体温", "description": "", "ocr": null, "category": "体征", "image": "NA", "metrics": [], "isYellow": true}, {"id": "unit-19", "code": 2007, "name": "氧饱和度", "displayName": "氧饱和度", "description": "", "ocr": null, "category": "体征", "image": "NA", "metrics": [], "isYellow": true}, {"id": "unit-20", "code": 3001, "name": "全血细胞分析", "displayName": "全血细胞分析", "description": "又名“血常规”", "ocr": null, "category": "检查", "image": "有", "metrics": [], "isYellow": false}, {"id": "unit-21", "code": 3002, "name": "肝功能", "displayName": "肝功能", "description": "略", "ocr": null, "category": "检查", "image": "有", "metrics": [], "isYellow": false}, {"id": "unit-22", "code": 3003, "name": "肾功能", "displayName": "肾功能", "description": "略", "ocr": null, "category": "检查", "image": "有", "metrics": [], "isYellow": false}, {"id": "unit-23", "code": 3004, "name": "血糖测定", "displayName": "血糖测定", "description": "仅为“葡萄糖测定”", "ocr": null, "category": "检查", "image": "有", "metrics": [], "isYellow": false}, {"id": "unit-24", "code": 3004.1, "name": "糖化血红蛋白", "displayName": "糖化血红蛋白", "description": "糖尿病评估核心指标", "ocr": null, "category": "检查", "image": "有", "metrics": [], "isYellow": false}, {"id": "unit-25", "code": 3005, "name": "凝血检查", "displayName": "凝血检查", "description": "服用华法林常规评估指标，包含“INR”", "ocr": null, "category": "检查", "image": "有", "metrics": [], "isYellow": false}, {"id": "unit-26", "code": 3006, "name": "血脂全套", "displayName": "血脂全套", "description": "不包含“葡萄糖测定”和“糖化血红蛋白”", "ocr": null, "category": "检查", "image": "有", "metrics": [], "isYellow": false}, {"id": "unit-27", "code": 3007, "name": "心肌酶谱", "displayName": "心肌酶谱", "description": "急性心梗评估核心指标，不包含“BNP”和“NT-PRO BNP”", "ocr": null, "category": "检查", "image": "有", "metrics": [], "isYellow": false}, {"id": "unit-28", "code": 3008, "name": "B型利钠肽", "displayName": "B型利钠肽", "description": "心衰评估核心指标，包含\"BNP”和“NT-PRO BNP”", "ocr": null, "category": "检查", "image": "有", "metrics": [], "isYellow": false}, {"id": "unit-29", "code": 3009, "name": "炎症指标", "displayName": "炎症指标", "description": "略", "ocr": null, "category": "检查", "image": "有", "metrics": [], "isYellow": false}, {"id": "unit-30", "code": 3010, "name": "电解质", "displayName": "电解质", "description": "略", "ocr": null, "category": "检查", "image": "有", "metrics": [], "isYellow": false}, {"id": "unit-31", "code": 3011, "name": "甲功五项", "displayName": "甲功五项", "description": "略", "ocr": null, "category": "检查", "image": "有", "metrics": [], "isYellow": false}, {"id": "unit-32", "code": 3012, "name": "OGTT", "displayName": "OGTT", "description": "又名“糖耐测试”", "ocr": null, "category": "检查", "image": "有", "metrics": [], "isYellow": false}, {"id": "unit-33", "code": 3013, "name": "快速血气", "displayName": "快速血气", "description": "略", "ocr": null, "category": "检查", "image": "有", "metrics": [], "isYellow": false}, {"id": "unit-34", "code": 3014, "name": "铁五项", "displayName": "铁五项", "description": "略", "ocr": null, "category": "检查", "image": "有", "metrics": [], "isYellow": false}, {"id": "unit-35", "code": 3015, "name": "白介素", "displayName": "白介素", "description": "略", "ocr": null, "category": "检查", "image": "有", "metrics": [], "isYellow": false}, {"id": "unit-36", "code": 3016, "name": "骨代谢", "displayName": "骨代谢", "description": "略", "ocr": null, "category": "检查", "image": "有", "metrics": [], "isYellow": false}, {"id": "unit-37", "code": 3017, "name": "血栓五项", "displayName": "血栓五项", "description": "略", "ocr": null, "category": "检查", "image": "有", "metrics": [], "isYellow": false}, {"id": "unit-38", "code": 3018, "name": "尿乳糜试验", "displayName": "尿乳糜试验", "description": "略", "ocr": null, "category": "检查", "image": "有", "metrics": [], "isYellow": false}, {"id": "unit-39", "code": 3019, "name": "尿蛋白-尿微量白蛋白24h", "displayName": "尿蛋白-尿微量白蛋白24h", "description": "略", "ocr": null, "category": "检查", "image": "有", "metrics": [], "isYellow": false}, {"id": "unit-40", "code": 3020, "name": "尿微量蛋白", "displayName": "尿微量蛋白", "description": "略", "ocr": null, "category": "检查", "image": "有", "metrics": [], "isYellow": false}, {"id": "unit-41", "code": 3021, "name": "尿蛋白定量", "displayName": "尿蛋白定量", "description": "略", "ocr": null, "category": "检查", "image": "有", "metrics": [], "isYellow": false}, {"id": "unit-42", "code": 3022, "name": "肿瘤相关抗原", "displayName": "肿瘤相关抗原", "description": "略", "ocr": null, "category": "检查", "image": "有", "metrics": [], "isYellow": false}, {"id": "unit-43", "code": 3023, "name": "尿常规+尿沉渣镜检", "displayName": "尿常规+尿沉渣镜检", "description": "略", "ocr": null, "category": "检查", "image": "有", "metrics": [], "isYellow": false}, {"id": "unit-44", "code": 3024, "name": "粪便常规", "displayName": "粪便常规", "description": "略", "ocr": null, "category": "检查", "image": "有", "metrics": [], "isYellow": false}, {"id": "unit-45", "code": 3025, "name": "12导联心电图", "displayName": "12导联心电图", "description": "常见的常规静态心电图", "ocr": null, "category": "检查", "image": "有", "metrics": [], "isYellow": false}, {"id": "unit-46", "code": 3026, "name": "动态心电图", "displayName": "动态心电图", "description": "又名“holter”，为常见的十二导联动态心电图", "ocr": null, "category": "检查", "image": "有", "metrics": [], "isYellow": false}, {"id": "unit-47", "code": 3026.1, "name": "6MWT", "displayName": "6MWT", "description": "六分钟步行试验", "ocr": null, "category": "检查", "image": "有", "metrics": [], "isYellow": false}, {"id": "unit-48", "code": 3027, "name": "心脏彩超", "displayName": "心脏彩超", "description": "又名“超声心动图”", "ocr": null, "category": "检查", "image": "有", "metrics": [], "isYellow": false}, {"id": "unit-49", "code": 3028, "name": "右心导管检查", "displayName": "右心导管检查", "description": "一种有创的血流动力学检查项目", "ocr": null, "category": "检查", "image": "有", "metrics": [], "isYellow": false}, {"id": "unit-50", "code": 4001, "name": "一般情况调查量表", "displayName": "一般情况调查量表", "description": "包含基础信息采集和\"EQ-ED-5L健康状态评估量表”", "ocr": null, "category": "量表", "image": "NA", "metrics": [], "isYellow": false}, {"id": "unit-51", "code": 4002, "name": "焦虑评估调查问卷", "displayName": "焦虑评估调查问卷", "description": "独立存在，也包含于“焦虑抑郁合并筛查量表”", "ocr": null, "category": "量表", "image": "NA", "metrics": [], "isYellow": false}, {"id": "unit-52", "code": 4003, "name": "抑郁评估调查问卷", "displayName": "抑郁评估调查问卷", "description": "独立存在，也包含于“焦虑抑郁合并筛查量表”", "ocr": null, "category": "量表", "image": "NA", "metrics": [], "isYellow": false}, {"id": "unit-53", "code": 4004, "name": "睡眠质量调查问卷", "displayName": "睡眠质量调查问卷", "description": "又名\"匹兹堡睡眠量表\"", "ocr": null, "category": "量表", "image": "NA", "metrics": [], "isYellow": false}, {"id": "unit-54", "code": 4005, "name": "生活质量调查问卷", "displayName": "生活质量调查问卷", "description": "又名“SF-36”冠心病用生活质量调查，区别于KCCQ是心衰用", "ocr": null, "category": "量表", "image": "NA", "metrics": [], "isYellow": false}, {"id": "unit-55", "code": 4006, "name": "焦虑抑郁合并筛查量表", "displayName": "焦虑抑郁合并筛查量表", "description": "包含“焦虑评估调查问卷”和“抑郁评估调查问卷”", "ocr": null, "category": "量表", "image": "NA", "metrics": [], "isYellow": false}, {"id": "unit-56", "code": 4007, "name": "堪萨斯城心肌病问卷-KCCQ", "displayName": "堪萨斯城心肌病问卷-KCCQ", "description": "心衰用生活质量调查，区别于“生活质量调查问卷”是冠心病用", "ocr": null, "category": "量表", "image": "NA", "metrics": [], "isYellow": false}, {"id": "unit-57", "code": 4008, "name": "EQ-5D-5L健康状态评估量表", "displayName": "EQ-5D-5L健康状态评估量表", "description": "又名”EQ-5D-EL”，也包含于“一般情况调查量表”", "ocr": null, "category": "量表", "image": "NA", "metrics": [], "isYellow": false}, {"id": "unit-58", "code": 4009, "name": "运动能力调查量表", "displayName": "运动能力调查量表", "description": "又名“BORG\"", "ocr": null, "category": "量表", "image": "NA", "metrics": [], "isYellow": false}, {"id": "unit-59", "code": 4010, "name": "用药依从性评估", "displayName": "用药依从性评估", "description": "又名“MMAS-8”，用于华法林等药物的依从性评估", "ocr": null, "category": "量表", "image": "NA", "metrics": [], "isYellow": false}, {"id": "unit-60", "code": 4011, "name": "血栓栓塞危险评估", "displayName": "血栓栓塞危险评估", "description": "又名“CHA2DS2-VASc”，常用于房颤评估血栓栓塞危险", "ocr": null, "category": "量表", "image": "NA", "metrics": [], "isYellow": false}, {"id": "unit-61", "code": 4012, "name": "出血风险评分", "displayName": "出血风险评分", "description": "房颤用，又名“HAS-BLED”", "ocr": null, "category": "量表", "image": "NA", "metrics": [], "isYellow": false}, {"id": "unit-62", "code": 4013, "name": "抗凝治疗量表", "displayName": "抗凝治疗量表", "description": "房颤用，又名“ACTS”", "ocr": null, "category": "量表", "image": "NA", "metrics": [], "isYellow": false}, {"id": "unit-63", "code": 4014, "name": "西雅图心绞痛量表", "displayName": "西雅图心绞痛量表", "description": "冠心病用，又名“SAQ”", "ocr": null, "category": "量表", "image": "NA", "metrics": [], "isYellow": false}, {"id": "unit-64", "code": 4015, "name": "NYHA分级", "displayName": "NYHA分级", "description": "心衰用，NYHA心功能分级", "ocr": null, "category": "量表", "image": "NA", "metrics": [], "isYellow": false}, {"id": "unit-65", "code": 4016, "name": "WHO-FC分级", "displayName": "WHO-FC分级", "description": "肺高压用，WHO-FC分级", "ocr": null, "category": "量表", "image": "NA", "metrics": [], "isYellow": false}, {"id": "unit-66", "code": 4017, "name": "西雅图心衰模型（SHFM）入组评估", "displayName": "西雅图心衰模型入组评估", "description": "用于心衰服务包对于心衰患者的评估和管理", "ocr": null, "category": "量表", "image": "NA", "metrics": ["SHFM"], "isYellow": false}, {"id": "unit-67", "code": 5001, "name": "医疗随访量表", "displayName": "医疗随访量表", "description": "为“症状随访量表”需要修改名称；常用于面向患者采集临床事件相关确认，关联“临床事件跟踪\"和”临床事件核实“2个待办事项", "ocr": null, "category": "事件", "image": "NA", "metrics": [], "isYellow": false}, {"id": "unit-68", "code": 5002, "name": "临床事件", "displayName": "临床事件", "description": "临床事件可用于评价药物不良或者终点指标，临床事件可能促发终点事件（具体参照方案），症状随访结果可能预示临床事件（具体需要研究者确认，CRC登记)", "ocr": null, "category": "事件", "image": "NA", "metrics": [], "isYellow": false}, {"id": "unit-69", "code": 5003, "name": "失访事件", "displayName": "失访事件", "description": "目前仅在科研平台，需要联动医患平台患者状态", "ocr": null, "category": "事件", "image": "NA", "metrics": [], "isYellow": false}, {"id": "unit-70", "code": 5004, "name": "退出事件", "displayName": "退出事件", "description": "目前仅在科研平台，需要联动医患平台患者状态", "ocr": null, "category": "事件", "image": "NA", "metrics": [], "isYellow": false}, {"id": "unit-71", "code": 5005, "name": "终点事件", "displayName": "终点事件", "description": "目前仅在科研平台，需要联动医患平台患者状态", "ocr": null, "category": "事件", "image": "NA", "metrics": [], "isYellow": false}, {"id": "unit-72", "code": 5006, "name": "不良事件（序号、名称、开始日期、结束日期、严重程度、与研究药物关系、对研究药物采取措施、转归、是否为SAE、是否为SUSAR）", "displayName": "不良事件", "description": "", "ocr": "有", "category": "事件", "image": "有", "metrics": ["序号", "名称", "开始日期", "结束日期", "严重程度", "与研究药物关系", "对研究药物采取措施", "转归", "是否为SAE", "是否为SUSAR"], "isYellow": true}, {"id": "unit-73", "code": 5007, "name": "严重不良事件（序号、SAE名称、SAE类型、SAE详细描述、符合SAE标准日期、严重程度、与试药药物关系、对试药药物采取措施、针对SAE采取的治疗措施、SAE转归、若死亡，死亡原因、若死亡，死亡日期、是否预期、揭盲情况、上报伦理委员会日期、上报申办方日期）", "displayName": "严重不良事件", "description": "", "ocr": "有", "category": "事件", "image": "有", "metrics": ["序号", "SAE名称", "SAE类型", "SAE详细描述", "符合SAE标准日期", "严重程度", "与试药药物关系", "对试药药物采取措施", "针对SAE采取的治疗措施", "SAE转归", "若死亡", "死亡原因", "死亡日期", "是否预期", "揭盲情况", "上报伦理委员会日期", "上报申办方日期"], "isYellow": true}];
+    const state = { activeCategory: categories[0] || '', query: '', selected: [], openMetricUnitId: '', selectedMetrics: {} };
+
+    const categoryList = document.getElementById('categoryList');
+    const libraryList = document.getElementById('libraryList');
+    const selectedList = document.getElementById('selectedList');
+    const selectedCount = document.getElementById('selectedCount');
+    const metricTitle = document.getElementById('metricTitle');
+    const metricSubtitle = document.getElementById('metricSubtitle');
+    const metricPanelBody = document.getElementById('metricPanelBody');
+    const searchInput = document.getElementById('searchInput');
+    const clearBtn = document.getElementById('clearBtn');
+
+    function escapeHtml(text) {
+      return String(text || '').replace(/[&<>"']/g, function (s) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[s];
+      });
+    }
+
+    function getUnitById(id) {
+      return units.find(unit => unit.id === id);
+    }
+
+    function getFilteredUnits() {
+      return units.filter(unit => {
+        const categoryMatch = !state.activeCategory || unit.category === state.activeCategory;
+        const queryMatch = !state.query || unit.name.includes(state.query) || unit.displayName.includes(state.query);
+        return categoryMatch && queryMatch;
+      });
+    }
+
+    function renderCategories() {
+      categoryList.innerHTML = categories.map(category => `
+        <button class="category-btn ${state.activeCategory === category ? 'active' : ''}" data-category="${escapeHtml(category)}">${escapeHtml(category)}</button>
+      `).join('');
+      categoryList.querySelectorAll('.category-btn').forEach(button => {
+        button.addEventListener('click', () => {
+          state.activeCategory = button.dataset.category;
+          renderCategories();
+          renderLibrary();
+        });
+      });
+    }
+
+    function toggleUnit(id) {
+      if (state.selected.includes(id)) {
+        state.selected = state.selected.filter(item => item !== id);
+        delete state.selectedMetrics[id];
+        if (state.openMetricUnitId === id) state.openMetricUnitId = state.selected[0] || '';
+      } else {
+        state.selected.push(id);
+      }
+      renderLibrary();
+      renderSelected();
+    }
+
+    function renderLibrary() {
+      const list = getFilteredUnits();
+      libraryList.innerHTML = list.length ? list.map(unit => `
+        <label class="unit-option">
+          <input type="checkbox" data-id="${unit.id}" ${state.selected.includes(unit.id) ? 'checked' : ''} />
+          <span class="${unit.isYellow ? 'yellow' : ''}">${escapeHtml(unit.displayName)}</span>
+        </label>
+      `).join('') : '<div class="empty">当前分类下没有匹配单元</div>';
+      libraryList.querySelectorAll('input[type="checkbox"]').forEach(input => {
+        input.addEventListener('change', () => toggleUnit(input.dataset.id));
+      });
+    }
+
+    function hasTagValue(value) {
+      const text = String(value || '').trim();
+      return text && text.toUpperCase() !== 'NA';
+    }
+
+    function renderUnitTags(unit) {
+      const tags = [];
+      if (hasTagValue(unit.ocr)) tags.push(`OCR ${escapeHtml(unit.ocr)}`);
+      if (hasTagValue(unit.category)) tags.push(escapeHtml(unit.category));
+      if (hasTagValue(unit.image)) tags.push(`图片 ${escapeHtml(unit.image)}`);
+      return tags.map(tag => `<span class="tag">${tag}</span>`).join('');
+    }
+
+    function renderSelected() {
+      const selectedUnits = state.selected.map(getUnitById).filter(Boolean);
+      selectedCount.textContent = `(${selectedUnits.length})`;
+      if (!selectedUnits.length) {
+        selectedList.innerHTML = '<div class="empty">尚未选择单元</div>';
+        return;
+      }
+      selectedList.innerHTML = selectedUnits.map((unit, index) => `
+        <div class="selected-card ${state.openMetricUnitId === unit.id ? 'active' : ''}">
+          <div class="selected-top">
+            <div>
+              <div class="selected-name ${unit.isYellow ? 'yellow' : ''}">${escapeHtml(unit.displayName)}</div>
+              <div class="selected-desc">${escapeHtml(unit.description || '暂无说明')}</div>
+              <div class="selected-tags">
+                ${renderUnitTags(unit)}
+              </div>
+            </div>
+            <div class="selected-actions">
+              ${unit.metrics.length ? `<button class="icon-btn metric-btn" data-id="${unit.id}" title="查看指标">⚙</button>` : ''}
+              <button class="icon-btn delete-btn" data-id="${unit.id}" title="移除单元">🗑</button>
+            </div>
+          </div>
+          <div class="order-no">${index + 1}</div>
+        </div>
+      `).join('');
+      selectedList.querySelectorAll('.metric-btn').forEach(button => {
+        button.addEventListener('click', () => {
+          state.openMetricUnitId = state.openMetricUnitId === button.dataset.id ? '' : button.dataset.id;
+          renderSelected();
+          renderMetrics();
+        });
+      });
+      selectedList.querySelectorAll('.delete-btn').forEach(button => {
+        button.addEventListener('click', () => toggleUnit(button.dataset.id));
+      });
+    }
+
+    function abbreviateMetric(metric) {
+      const metricMap = {
+        '序号': 'sequenceNo',
+        '药物名称': 'drugName',
+        '治疗疾病': 'treatedDisease',
+        '剂量': 'dose',
+        '单位': 'unit',
+        '频次': 'frequency',
+        '给药途径': 'routeOfAdministration',
+        '开始时间': 'startDate',
+        '结束时间': 'endDate',
+        '是否继续': 'isContinued',
+        '民族': 'ethnicity',
+        '居住地址': 'residentialAddress',
+        '是否吸烟': 'isSmoking',
+        '是否饮酒': 'isDrinking',
+        '既往半年以上高原旅居史': 'plateauResidenceHistory',
+        '诊断': 'diagnosis',
+        '既往病史': 'pastMedicalHistory',
+        '家族史': 'familyHistory',
+        '单次剂量': 'singleDose',
+        '给药频次': 'doseFrequency'
+      };
+      if (metricMap[metric]) return metricMap[metric];
+      return 'field' + String(metric || '').split('').reduce((sum, char) => sum + char.charCodeAt(0), 0);
+    }
+
+    function inferTextType(metric) {
+      if (/序号|剂量|次数|数量|时间|日期|年龄|评分|分值/.test(metric)) return '数值';
+      if (/病史|地址|原因|描述|情况|备注|诊断/.test(metric)) return '多行文本';
+      return '单行文本';
+    }
+
+    function toggleMetric(unitId, metricName) {
+      if (!state.selectedMetrics[unitId]) state.selectedMetrics[unitId] = [];
+      const current = state.selectedMetrics[unitId];
+      state.selectedMetrics[unitId] = current.includes(metricName)
+        ? current.filter(item => item !== metricName)
+        : current.concat(metricName);
+      renderMetrics();
+    }
+
+    function renderMetrics() {
+      const unit = getUnitById(state.openMetricUnitId);
+      if (!unit || !state.selected.includes(unit.id)) {
+        metricTitle.textContent = '指标面板';
+        metricSubtitle.textContent = '请先在中间区域点击某个单元的设置图标';
+        metricPanelBody.innerHTML = '<div class="empty">未选择要查看的单元指标</div>';
+        return;
+      }
+      metricTitle.innerHTML = `${escapeHtml(unit.displayName)} <span style="font-size:14px;color:#666;">(${unit.metrics.length})</span>`;
+      metricSubtitle.textContent = '单击“✔”配置指标';
+      const checkedMetrics = state.selectedMetrics[unit.id] || [];
+      if (!unit.metrics.length) {
+        metricPanelBody.innerHTML = '<div class="empty">该单元未解析到指标</div>';
+        return;
+      }
+      metricPanelBody.innerHTML = `
+        <div class="metric-table">
+          <div class="metric-header">
+            <div></div>
+            <div class="metric-cell">指标名称</div>
+            <div class="metric-cell">英文缩写</div>
+            <div class="metric-cell">文本类型</div>
+          </div>
+          ${unit.metrics.map((metric) => {
+            const checked = checkedMetrics.includes(metric);
+            return `
+              <label class="metric-row ${checked ? 'checked' : ''}">
+                <input type="checkbox" data-unit-id="${unit.id}" data-metric="${escapeHtml(metric)}" ${checked ? 'checked' : ''} />
+                <div class="metric-cell name ${unit.isYellow ? 'yellow' : ''}">${escapeHtml(metric)}</div>
+                <div class="metric-cell">${escapeHtml(abbreviateMetric(metric))}</div>
+                <div class="metric-cell">${escapeHtml(inferTextType(metric))}</div>
+              </label>
+            `;
+          }).join('')}
+        </div>
+      `;
+      metricPanelBody.querySelectorAll('input[type="checkbox"]').forEach(input => {
+        input.addEventListener('change', () => toggleMetric(input.dataset.unitId, input.dataset.metric));
+      });
+    }
+
+    searchInput.addEventListener('input', event => {
+      state.query = event.target.value.trim();
+      renderLibrary();
+    });
+
+    clearBtn.addEventListener('click', () => {
+      state.selected = [];
+      state.openMetricUnitId = '';
+      state.selectedMetrics = {};
+      renderLibrary();
+      renderSelected();
+      renderMetrics();
+    });
+
+    renderCategories();
+    renderLibrary();
+    renderSelected();
+    renderMetrics();
+  </script>
+</body>
+</html>
