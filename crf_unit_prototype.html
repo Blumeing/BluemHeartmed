@@ -1,0 +1,217 @@
+﻿<!doctype html>
+<!-- 原型说明：本页面为 CRF 指标化录入/编辑交互原型，左侧保留 CRF 页面，右侧提供 PRD 说明；可切换“仅界面”和“界面+说明”，数字标记可定位对应说明。 -->
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CRF表</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    *{box-sizing:border-box} body{margin:0;background:#f4f7fb;color:#14233b;font-family:"Microsoft YaHei","PingFang SC",Arial,sans-serif;font-size:14px;overflow:hidden}
+    .prototype-shell{display:flex;height:100vh;position:relative;background:#f4f7fb}#left-panel{width:82%;height:100vh;overflow:auto;position:relative}#right-panel{width:18%;height:100vh;overflow:auto;background:#fffbeb;border-left:2px dashed #f2c94c}#connections{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:40}.connection-line{fill:none;stroke:#165dff;stroke-width:2;opacity:.6;transition:all .2s ease}.connection-line.active{stroke-width:3;opacity:1}.connection-label-bg{fill:#165dff}.connection-label{fill:#fff;font-size:12px;font-weight:700;text-anchor:middle;dominant-baseline:central}.proto-element{position:relative;border-radius:4px;transition:box-shadow .2s ease,background-color .2s ease}.proto-element:hover,.proto-element.active-highlight{box-shadow:0 0 0 2px #165dff,0 4px 12px rgba(22,93,255,.16);background:rgba(22,93,255,.04)}.prototype-doc{padding:14px;color:#78350f}.prototype-badge{display:inline-block;padding:2px 8px;border-radius:3px;background:#f59e0b;color:#fff;font-size:11px;font-weight:700;letter-spacing:.3px}.prototype-doc h2{margin:10px 0 6px;color:#7c2d12;font-size:16px}.prototype-doc p{margin:0 0 10px;color:#92400e;font-size:12px;line-height:1.6}.proto-desc{margin-bottom:10px;padding:10px;border:1px solid #fde68a;border-radius:6px;background:#fff7ed;transition:all .2s ease}.proto-desc:hover,.proto-desc.active-highlight{background:#fde68a;border-color:#d97706;box-shadow:0 3px 10px rgba(217,119,6,.16)}.proto-desc-no{display:inline-grid;place-items:center;width:22px;height:22px;margin-right:6px;border-radius:50%;background:#f59e0b;color:#fff;font-size:12px;font-weight:700}.proto-desc h3{display:flex;align-items:center;margin:0 0 6px;color:#1f2937;font-size:13px}.proto-desc ul{margin:0;padding-left:18px;color:#57534e;font-size:12px;line-height:1.55}.mobile-toggle-btn{display:none;position:fixed;right:16px;bottom:16px;z-index:80;height:40px;padding:0 14px;border:0;border-radius:999px;background:#165dff;color:#fff;font-size:13px;box-shadow:0 4px 12px rgba(22,93,255,.28)}@media(max-width:768px){.prototype-shell{flex-direction:column;overflow:auto}#left-panel,#right-panel{width:100%;height:auto;overflow:visible}#connections{display:none}.mobile-toggle-btn{display:inline-flex;align-items:center;justify-content:center}}
+    .prototype-shell.interface-only #left-panel{width:100%}.prototype-shell.interface-only #right-panel,.prototype-shell.interface-only #connections{display:none}#left-panel,#right-panel{transition:width .2s ease}.proto-marker{position:absolute;right:-10px;top:-10px;z-index:65;display:inline-grid;place-items:center;width:22px;height:22px;border:0;border-radius:50%;background:#165dff;color:#fff;font-size:12px;font-weight:700;cursor:pointer;box-shadow:0 2px 8px rgba(22,93,255,.28)}.proto-marker:hover{background:#0f46c7}.mobile-toggle-btn{display:inline-flex;align-items:center;justify-content:center;cursor:pointer}@media(max-width:768px){.prototype-shell.interface-only #left-panel{width:100%}}
+    .top{height:40px;background:#20384d;color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 14px}.brand{display:flex;align-items:center;gap:9px;font-weight:700}.logo{width:26px;height:26px;border-radius:4px;background:#fff;color:#2484d8;display:grid;place-items:center;font-size:19px}.brand small{display:block;font-size:10px;line-height:1;color:#e8f2ff}.user{font-size:12px;display:flex;gap:14px;align-items:center}
+    .toolbar{height:44px;background:#fff;border-bottom:1px solid #dde5ef;display:flex;align-items:center;gap:10px;padding:0 6px}.select,.search,.tiny-btn{height:28px;border:1px solid #d5deea;background:#fff;color:#62708a;border-radius:3px}.select{padding:0 22px 0 8px}.search{width:180px;padding:0 10px}.tiny-btn{width:28px;color:#245bd6;font-size:18px}.patient-mini{margin-left:16px;color:#59708e}.patient-badge{display:inline-grid;place-items:center;width:22px;height:22px;border:1px solid #cfe0ff;border-radius:50%;color:#1d63ff;margin-right:8px}
+    .nav{height:42px;background:#fff;border-bottom:1px solid #dfe7f1;display:flex;align-items:end;padding-left:322px;gap:28px}.nav span{height:42px;line-height:42px;color:#334a68}.nav .active{color:#155ce8;border-bottom:2px solid #155ce8}
+    .layout{display:grid;grid-template-columns:304px 1fr 430px;min-height:calc(100vh - 126px)}.left{background:#fff;border-right:1px solid #dce5f0}.main{min-width:760px;background:#f5f8fc}.right{background:#fff;border-left:1px solid #dce5f0}
+    .tabs{display:flex;background:#f4f7fb;padding:12px 5px 0;gap:2px}.tabs button{height:32px;border:0;background:#eef3fb;color:#4b6585;padding:0 13px}.tabs .active{background:#fff;color:#0d55d9;font-weight:700}.filters{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;padding:10px 5px}.filters div{height:28px;border:1px solid #d8e1ec;color:#8da0b8;line-height:28px;padding-left:8px;border-radius:3px}.patients{padding:0 5px}.patient{height:62px;border-bottom:1px solid #e8eef6;display:grid;grid-template-columns:42px 1fr 58px;align-items:center}.patient.active{background:#e8f0ff;border:1px solid #2d6bff}.avatar{width:36px;height:36px;border-radius:50%;background:#fff;border:1px solid #e4ebf4;display:grid;place-items:center;color:#1766ff;font-size:20px}.pname{font-size:13px;color:#273d5c}.pmeta{font-size:12px;color:#607390;margin-top:6px}.group{height:24px;border:1px solid #00a8df;background:#e9fbff;color:#0088b9;font-size:12px}
+    .record-tabs{height:44px;background:#fff;border-bottom:1px solid #e1e8f0;display:flex;align-items:center;padding-left:18px;gap:24px}.record-tabs span{font-size:12px;color:#536986}.record-tabs .active{color:#1261e6;font-weight:700}.baseline{height:38px;background:#fff;border-bottom:1px solid #e2e9f3;display:flex;align-items:center;padding-left:18px;gap:10px}.orange{color:#f27b2d;background:#fff3ec;border:1px solid #ffd7c0;padding:2px 5px;font-size:12px}.attach{height:136px;background:#fff;margin-bottom:8px;border-bottom:1px solid #e5edf6;display:flex;align-items:start;padding:18px;gap:18px}.attach-title{font-weight:700}.thumb{width:64px;height:64px;border-radius:3px;background:linear-gradient(135deg,#695d4a,#f6f1e9);border:1px solid #aaa}.crf{padding-bottom:40px}.section{background:#fff;border-top:1px solid #e3ebf4;border-bottom:1px solid #dce6f0;margin-bottom:6px;position:relative}.section-head{height:38px;display:flex;align-items:center;padding:0 16px;border-left:5px solid #2f6eff;gap:8px}.section-title{font-weight:700;color:#0e1e35}.section-title.yellow{color:#f2b600}.switch{width:26px;height:14px;border-radius:999px;background:#9aa8bd;position:relative;opacity:.95}.switch:after{content:"";position:absolute;width:10px;height:10px;left:2px;top:2px;background:#fff;border-radius:50%}.switch.disabled{opacity:.75}.lock{color:#a4afc0}.meta-line{margin-left:auto;font-size:12px;color:#657590}.edit-link{border:0;background:none;color:#1f69df;cursor:pointer;margin-left:12px}.body{padding:0 34px 20px}.view-row{height:32px;display:flex;align-items:center;gap:12px}.label{width:86px;text-align:right;font-weight:700}.value{color:#263b58}.muted{color:#657590}.metric-table{margin-top:10px;border-collapse:collapse;width:100%;font-size:13px}.metric-table th{background:#f3f5f8;text-align:left;height:32px;color:#1a2e4a}.metric-table td{border-bottom:1px solid #e4eaf2;height:32px}.metric-table th:first-child,.metric-table td:first-child{padding-left:24px}.editor{padding-top:6px}.field{display:grid;grid-template-columns:96px 1fr;gap:10px;align-items:center;margin:10px 0}.field label{text-align:right;font-weight:700}.input,.textarea,.select-input{border:1px solid #d8e1ec;border-radius:2px;background:#fff;height:28px;padding:0 9px;color:#52627a}.textarea{height:70px;padding:8px;resize:vertical}.radio-line{display:flex;gap:22px;align-items:center;flex-wrap:wrap}.checkbox-line{display:flex;gap:12px;align-items:center;flex-wrap:wrap}.field-stack{display:flex;flex-direction:column;gap:5px}.field-note{color:#8a6400;font-size:12px;line-height:1.45}.upload{height:38px;border:1px dashed #cdd9e8;border-radius:3px;color:#667892;display:flex;align-items:center;padding-left:12px}.actions{display:flex;justify-content:center;gap:10px;padding:16px 0 2px}.btn{height:30px;padding:0 18px;border-radius:3px;border:1px solid #2f6eff;background:#2f6eff;color:#fff}.btn.secondary{background:#fff;color:#536986;border-color:#cdd8e6}.detail-btn{border:0;background:none;color:#1f69df;cursor:pointer;font-size:13px}
+    .right-title{height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 14px;font-weight:700}.query-filters{display:flex;gap:8px;padding:0 14px 10px}.query-filters div{height:28px;border:1px solid #d8e1ec;color:#8ca0ba;line-height:28px;padding:0 10px;min-width:92px}.query-table{width:100%;border-collapse:collapse;font-size:12px}.query-table th{background:#f3f6fa;height:32px;color:#213b60}.query-table td{height:38px;border-bottom:1px solid #e8eef6;text-align:center}.pending{color:#f07c2b}.pager{text-align:center;margin-top:20px;color:#243b5c}.page-no{display:inline-block;background:#1f63df;color:#fff;padding:6px 10px;margin:0 8px}
+  .type-tag{display:inline-block;margin-left:4px;padding:1px 6px;border-radius:3px;font-size:11px;background:#e8f0fe;color:#174ea6;font-weight:400}.unit{font-size:13px;color:#5f6368;margin-left:4px}</style>
+</head>
+<body>
+  <div class="prototype-shell">
+  <button class="mobile-toggle-btn" id="mobileToggle" onclick="toggleMobilePrototypeView()">仅界面</button>
+  <div id="left-panel">
+  <header class="top"><div class="brand"><div class="logo">＋</div><div>哈瑞特医疗科研平台<small>HEARTMED CLINICAL RESEARCH SYSTEM</small></div></div><div class="user">99+  🔔  王婷医助-测试⌄</div></header>
+  <div class="toolbar"><button class="select">筛选号⌄</button><input class="search" placeholder="请输入关键字"><button class="tiny-btn">＋</button><div class="patient-mini"><span class="patient-badge">崔</span>崔惠康　|　女　|　76岁</div></div>
+  <nav class="nav"><span>科研项目⌄</span><span>分中心...⌄</span><span>科研分组⌄</span><span>入组来源⌄</span><span class="active">CRF表</span><span>病例动态</span><span>图片档案</span></nav>
+  <div class="layout">
+    <aside class="left"><div class="tabs"><button>待入组 (7)</button><button class="active">研究中 (162)</button><button>已归档 (1)</button></div><div class="filters"><div>管理情况⌄</div><div>档案记录状态⌄</div><div>研究状态⌄</div></div><div class="patients" id="patients"></div></aside>
+    <main class="main"><div class="record-tabs" id="recordTabs"></div><div class="baseline">▣　基线记录 2024-11-06 <span class="orange">监察中</span> 🔒</div><div class="attach"><div class="attach-title">全部附件</div><div class="thumb"></div><div style="margin-left:auto;color:#1d63df;font-size:12px">展开附件(1)⌄</div></div><div class="crf" id="crf"></div></main>
+    <aside class="right"><div class="right-title"><span>记录质疑</span><span style="color:#1d63df;font-size:12px">全部〉</span></div><div class="query-filters"><div>质疑类型⌄</div><div>质疑单元⌄</div><div>质疑状态⌄</div><div>重置</div></div><table class="query-table"><thead><tr><th>质疑类型</th><th>质疑记录</th><th>质疑单元/对象</th><th>质疑状态</th><th>操作</th></tr></thead><tbody><tr><td>方案监察</td><td>基线记录</td><td>入院记录、手术...</td><td class="pending">待接收</td><td style="color:#1d63df">处理</td></tr></tbody></table><div class="pager">共 1 条 <span class="page-no">1</span> 前往　1　页</div></aside>
+  </div>
+  </div>
+  <aside id="right-panel">
+    <div class="prototype-doc">
+      <span class="prototype-badge">Prototype PRD</span>
+      <h2>CRF 指标化录入说明</h2>
+      <p>本页用于展示配置后的黄色指标单元，并在编辑态按指标类型生成对应录入控件。右侧说明与左侧关键控件通过连线对应。</p>
+      <div class="proto-desc" data-proto-id="1">
+        <h3><span class="proto-desc-no">1</span>黄色指标单元</h3>
+        <ul><li>黄色标题表示本轮新增或重点指标化单元。</li><li>页面应完整展示配置页中勾选的黄色指标。</li></ul>
+      </div>
+      <div class="proto-desc" data-proto-id="2">
+        <h3><span class="proto-desc-no">2</span>进入编辑态</h3>
+        <ul><li>点击“编辑”后展开该单元的指标录入表单。</li><li>保存或取消后退出编辑态并回到查看状态。</li></ul>
+      </div>
+      <div class="proto-desc" data-proto-id="3">
+        <h3><span class="proto-desc-no">3</span>字段录入项</h3>
+        <ul><li>字段标签展示指标名称，不展示字段类型。</li><li>数值字段保留单位展示，输入控件按配置类型生成。</li></ul>
+      </div>
+      <div class="proto-desc" data-proto-id="4">
+        <h3><span class="proto-desc-no">4</span>下拉/单选可操作</h3>
+        <ul><li>下拉选择必须可展开、可选择，并保留“请选择”。</li><li>单选项必须可点选，同组互斥。</li></ul>
+      </div>
+    </div>
+  </aside>
+  <svg id="connections"></svg>
+  </div>
+<script>const yellowUnits=[
+{"id":"unit-4","code":3,"title":"合并用药","rawName":"合并用药（序号、药物名称、治疗疾病、剂量、单位、频次、给药途径、开始时间、结束时间、是否继续）","description":"","ocr":"有","category":"合规","image":"有","metrics":[{"name":"序号","type":"数值","length":3},{"name":"药物名称","type":"单行文本","length":50},{"name":"治疗疾病","type":"单行文本","length":50},{"name":"剂量","type":"数值","length":10},{"name":"单位","type":"下拉选择","options":["mg","g","ml","片","粒"]},{"name":"频次","type":"下拉选择","options":["qd","bid","tid","qid"]},{"name":"给药途径","type":"下拉选择","options":["口服","静脉注射","肌肉注射","皮下注射","外用"]},{"name":"开始时间","type":"日期选择"},{"name":"结束时间","type":"日期选择"},{"name":"是否继续","type":"单选","options":["是","否"]}],"isYellow":true},
+{"id":"unit-5","code":1000,"title":"基本信息","rawName":"基本信息（民族、居住地址）","description":"包含患者的基本信息，如民族、居住地址","ocr":null,"category":"诊疗","image":"NA","metrics":[{"name":"民族","type":"下拉选择","options":["汉族","蒙古族","藏族","壮族","回族","苗族","彝族","满族"]},{"name":"居住地址","type":"单行文本","length":100}],"isYellow":true},
+{"id":"unit-10","code":1005,"title":"既往史","rawName":"既往史（是否吸烟、是否饮酒、既往半年以上高原旅居史）","description":"","ocr":"有","category":"诊疗","image":"有","metrics":[{"name":"是否吸烟","type":"单选","options":["是","否"]},{"name":"是否饮酒","type":"单选","options":["是","否"]},{"name":"既往半年以上高原旅居史","type":"单选","options":["是","否"]}],"isYellow":true},
+{"id":"unit-11","code":1006,"title":"病史采集","rawName":"病史采集（诊断、既往病史、家族史）","description":"","ocr":"有","category":"诊疗","image":"有","metrics":[{"name":"诊断","type":"多行文本"},{"name":"既往病史","type":"多行文本"},{"name":"家族史","type":"多行文本"}],"isYellow":true},
+{"id":"unit-12","code":1007,"title":"用药史","rawName":"用药史（序号、药物名称、治疗疾病、单次剂量、给药频次、开始时间、结束时间、是否继续）","description":"","ocr":"有","category":"诊疗","image":"有","metrics":[{"name":"序号","type":"数值","length":3},{"name":"药物名称","type":"单行文本","length":50},{"name":"治疗疾病","type":"单行文本","length":50},{"name":"单次剂量","type":"数值","length":10},{"name":"给药频次","type":"下拉选择","options":["qd","bid","tid","qid"]},{"name":"开始时间","type":"日期选择"},{"name":"结束时间","type":"日期选择"},{"name":"是否继续","type":"单选","options":["是","否"]}],"isYellow":true},
+{"id":"unit-18","code":2006,"title":"体温","rawName":"体温","description":"","ocr":null,"category":"体征","image":"NA","metrics":[{"name":"体温","type":"数值","length":5,"unit":"℃"}],"isYellow":true},
+{"id":"unit-19","code":2007,"title":"氧饱和度","rawName":"氧饱和度","description":"","ocr":null,"category":"体征","image":"NA","metrics":[{"name":"氧饱和度","type":"数值","length":4,"unit":"%"}],"isYellow":true},
+{"id":"unit-72","code":5006,"title":"不良事件","rawName":"不良事件（序号、名称、开始日期、结束日期、严重程度、与研究药物关系、对研究药物采取措施、转归、是否为SAE、是否为SUSAR）","description":"","ocr":"有","category":"事件","image":"有","metrics":[{"name":"序号","type":"数值","length":3},{"name":"名称","type":"单行文本","length":50},{"name":"开始日期","type":"日期选择"},{"name":"结束日期","type":"日期选择"},{"name":"严重程度","type":"下拉选择","options":["轻度","中度","重度"]},{"name":"与研究药物关系","type":"下拉选择","options":["肯定有关","很可能有关","可能有关","可能无关","肯定无关"]},{"name":"对研究药物采取措施","type":"下拉选择","options":["继续用药","暂停用药","永久停药"]},{"name":"转归","type":"下拉选择","options":["痊愈","好转","未愈","死亡"]},{"name":"是否为SAE","type":"单选","options":["是","否"]},{"name":"是否为SUSAR","type":"单选","options":["是","否"]}],"isYellow":true},
+{"id":"unit-73","code":5007,"title":"严重不良事件","rawName":"严重不良事件（序号、SAE名称、SAE类型、SAE详细描述、符合SAE标准日期、严重程度、与试药药物关系、对试药药物采取措施、针对SAE采取的治疗措施、SAE转归、若死亡，死亡原因、若死亡，死亡日期、是否预期、揭盲情况、上报伦理委员会日期、上报申办方日期）","description":"","ocr":"有","category":"事件","image":"有","metrics":[{"name":"序号","type":"数值","length":3},{"name":"SAE名称","type":"单行文本","length":50},{"name":"SAE类型","type":"下拉选择","options":["导致死亡","危及生命","导致住院或住院时间延长","导致永久或显著残疾/功能丧失","导致先天异常/出生缺陷","其他重要医学事件"]},{"name":"SAE详细描述","type":"多行文本"},{"name":"符合SAE标准日期","type":"日期选择"},{"name":"严重程度","type":"下拉选择","options":["轻度","中度","重度"]},{"name":"与试药药物关系","type":"下拉选择","options":["肯定有关","很可能有关","可能有关","可能无关","肯定无关"]},{"name":"对试药药物采取措施","type":"下拉选择","options":["继续用药","暂停用药","永久停药"]},{"name":"针对SAE采取的治疗措施","type":"多行文本"},{"name":"SAE转归","type":"下拉选择","options":["痊愈","好转","未愈","死亡"]},{"name":"若死亡","type":"单选","options":["是","否"]},{"name":"死亡原因","type":"单行文本","length":50},{"name":"死亡日期","type":"日期选择"},{"name":"是否预期","type":"单选","options":["是","否"]},{"name":"揭盲情况","type":"下拉选择","options":["未揭盲","已揭盲"]},{"name":"上报伦理委员会日期","type":"日期选择"},{"name":"上报申办方日期","type":"日期选择"}],"isYellow":true}
+];
+const baseSections = [{"id": "unit-2", "code": 1, "title": "知情同意书", "rawName": "知情同意书", "description": "当前为图片，后续DCT实现电子知情同意", "ocr": null, "category": "合规", "image": "有", "metrics": [], "isYellow": false}, {"id": "unit-7", "code": 1002, "title": "入院记录", "rawName": "入院记录", "description": "出院病历的一部分，包含主诉、既往史和体格", "ocr": null, "category": "诊疗", "image": "有", "metrics": [], "isYellow": false}];
+const concomitantMedicationUnit=yellowUnits.find(function(unit){return unit.id==='unit-4';});
+if(concomitantMedicationUnit){concomitantMedicationUnit.rawName=concomitantMedicationUnit.rawName.replace(/是否继续/g,'是否持续');concomitantMedicationUnit.metrics=concomitantMedicationUnit.metrics.map(function(metric){if(metric.name==='是否继续')return Object.assign({},metric,{name:'是否持续'});return metric;});}
+const metricSpecs={
+  '合并用药':{
+    '药物名称':{type:'单行文本',length:20},
+    '治疗疾病':{type:'单行文本',length:100},
+    '剂量':{type:'数值',decimal:2,note:'正数数值，保留两位小数'},
+    '单位':{type:'可输入下拉单选',options:['mg','ug','ml','g','IU','片','粒','袋','丸'],note:'mg；ug；ml；g；IU；片；粒；袋；丸'},
+    '频次':{type:'可输入下拉单选',options:['一日一次','一日两次','一日三次','一日四次','隔日一次','按需服','未知'],note:'一日一次；一日两次；一日三次；一日四次；隔日一次；按需服；未知'},
+    '给药途径':{type:'可输入下拉单选',options:['口服','皮下注射','肌肉注射','静注','经皮','眼内','吸入','鼻腔','阴道','直肠','舌下'],note:'口服；皮下注射；肌肉注射；静注；经皮；眼内；吸入；鼻腔；阴道；直肠；舌下'},
+    '开始时间':{type:'日期选择',format:'yyyy-MM-dd'},
+    '结束时间':{type:'日期选择',format:'yyyy-MM-dd',note:'结束时间需大于开始时间'},
+    '是否持续':{type:'单选',options:['是','否'],note:'是；否'}
+  },
+  '基本信息':{
+    '民族':{type:'单行文本',length:20},
+    '居住地址':{type:'单行文本',length:100}
+  },
+  '既往史':{
+    '是否吸烟':{type:'单选',options:['是','否'],note:'是；否'},
+    '是否饮酒':{type:'单选',options:['是','否'],note:'是；否'},
+    '既往半年以上高原旅居史':{type:'单选',options:['是','否'],note:'是；否'}
+  },
+  '病史采集':{
+    '诊断':{type:'多行文本',length:500},
+    '既往病史':{type:'多行文本',length:500},
+    '家族史':{type:'多行文本',length:500}
+  },
+  '用药史':{
+    '药物名称':{type:'单行文本',length:20},
+    '治疗疾病':{type:'单行文本',length:100},
+    '单次剂量':{type:'单行文本',length:20},
+    '给药频次':{type:'可输入下拉单选',options:['一日一次','一日两次','一日三次','一日四次','隔日一次','按需服','未知'],note:'一日一次；一日两次；一日三次；一日四次；隔日一次；按需服；未知'},
+    '开始时间':{type:'日期选择',format:'yyyy-MM-dd'},
+    '结束时间':{type:'日期选择',format:'yyyy-MM-dd',note:'结束时间需大于开始时间'},
+    '是否继续':{type:'单选',options:['是','否'],note:'是；否'}
+  },
+  '体温':{'体温':{type:'数值',decimal:1,note:'大于0的数值，保留一位小数',unit:'℃'}},
+  '氧饱和度':{'氧饱和度':{type:'数值',unit:'%'}},
+  '不良事件':{
+    '名称':{type:'单行文本',length:100},
+    '开始日期':{type:'日期选择',format:'yyyy-MM-dd'},
+    '结束日期':{type:'日期选择',format:'yyyy-MM-dd',note:'结束日期>开始日期'},
+    '严重程度':{type:'下拉单选',options:['轻（1级）','中（2级）','重（3级）','危及生命（4级）','死亡（5级）'],note:'轻（1级）；中（2级）；重（3级）；危及生命（4级）；死亡（5级）'},
+    '与研究药物关系':{type:'下拉单选',options:['肯定有关','很可能有关','可能有关','可能无关','肯定无关'],note:'肯定有关；很可能有关；可能有关；可能无关；肯定无关'},
+    '对研究药物采取措施':{type:'下拉单选',options:['无','暂停给药','永久停药','减量'],note:'无；暂停给药；永久停药；减量'},
+    '转归':{type:'下拉单选',options:['恢复/缓解','未恢复','恢复伴后遗症','死亡','不详'],note:'恢复/缓解；未恢复；恢复伴后遗症；死亡；不详'},
+    '是否为SAE':{type:'单选',options:['是','否'],note:'是；否'},
+    '是否为SUSAR':{type:'单选',options:['是','否'],note:'是；否'}
+  },
+  '严重不良事件':{
+    'SAE名称':{type:'单行文本',length:100,note:'同步数据/输入'},
+    'SAE类型':{type:'下拉多选',options:['导致死亡','危及生命','需住院或延长住院时间','导致永久或显著残疾/功能丧失','先天性畸形/出生缺陷','其他重要医学事件'],note:'导致死亡；危及生命；需住院或延长住院时间；导致永久或显著残疾/功能丧失；先天性畸形/出生缺陷；其他重要医学事件'},
+    'SAE详细描述':{type:'多行文本',length:500},
+    '符合SAE标准日期':{type:'日期选择',format:'yyyy-MM-dd'},
+    '严重程度':{type:'同步数据/下拉单选',options:['轻（1级）','中（2级）','重（3级）','危及生命（4级）','死亡（5级）'],note:'轻（1级）；中（2级）；重（3级）；危及生命（4级）；死亡（5级）'},
+    '与试药药物关系':{type:'同步数据/下拉单选',options:['肯定有关','很可能有关','可能有关','可能无关','肯定无关'],note:'肯定有关；很可能有关；可能有关；可能无关；肯定无关'},
+    '对试药药物采取措施':{type:'同步数据/下拉单选',options:['无','暂停给药','永久停药','减量'],note:'无；暂停给药；永久停药；减量'},
+    '针对SAE采取的治疗措施':{type:'多行文本',length:100},
+    'SAE转归':{type:'下拉单选',options:['痊愈','好转','未愈','死亡','后遗症'],note:'痊愈；好转；未愈；死亡；后遗症'},
+    '死亡原因':{type:'单行文本',length:100,note:'与SAE关联，若选择死亡，出现死亡原因字段'},
+    '死亡日期':{type:'日期选择',format:'yyyy-MM-dd',note:'与SAE关联，若选择死亡，出现死亡日期字段'},
+    '是否预期':{type:'单选',options:['预期（已列式研究者手册）','非预期（SUSAR）'],note:'预期（已列式研究者手册）；非预期（SUSAR）'},
+    '揭盲情况':{type:'单选',options:['未揭盲','已揭盲'],note:'未揭盲；已揭盲'},
+    '接盲人':{type:'单行文本',length:20,note:'若选择已揭盲，则出现该字段'},
+    '揭盲时间':{type:'日期选择',format:'yyyy-MM-dd',note:'若选择已揭盲，则出现该字段'},
+    '上报伦理委员会日期':{type:'日期选择',format:'yyyy-MM-dd'},
+    '上报申办方日期':{type:'日期选择',format:'yyyy-MM-dd'}
+  }
+};
+function applyMetricSpecs(){yellowUnits.forEach(function(unit){var unitSpecs=metricSpecs[unit.title]||{};unit.metrics=unit.metrics.map(function(metric){var name=metricName(metric);var spec=unitSpecs[name]||{};return Object.assign({},metric,spec,{name:spec.name||name});});});}
+applyMetricSpecs();
+const seriousAdverseEventUnit=yellowUnits.find(function(unit){return unit.id==='unit-73';});
+if(seriousAdverseEventUnit){
+  seriousAdverseEventUnit.metrics=seriousAdverseEventUnit.metrics.reduce(function(metrics,metric){
+    if(metric.name==='若死亡')return metrics;
+    if(metric.name==='死亡原因')return metrics.concat(Object.assign({},metric,metricSpecs['严重不良事件']['死亡原因'],{name:'若死亡，死亡原因'}));
+    if(metric.name==='死亡日期')return metrics.concat(Object.assign({},metric,metricSpecs['严重不良事件']['死亡日期'],{name:'若死亡，死亡日期'}));
+    if(metric.name==='揭盲情况')return metrics.concat(metric,{name:'接盲人',type:'单行文本',length:20,note:'若选择已揭盲，则出现该字段'},{name:'揭盲时间',type:'日期选择',format:'yyyy-MM-dd',note:'若选择已揭盲，则出现该字段'});
+    return metrics.concat(metric);
+  },[]);
+}
+const state = { editingId: '', records: {}, syncedSAERecord: null };
+const tabNames = ['知情同意书','入院记录','手术记录','出院记录','血压','血糖','心率','身高体重','检验报告单','一般情况调查问卷','睡眠质量调查问卷','生活质量调查问卷'];
+const patientNames = ['崔惠康','高希望','杨淑霞','李民强','王树堂','何志林','包存芳','李淑霞','张西安','刘建都','杨永辉'];
+function escapeHtml(text){return String(text??'').replace(/[&<>"']/g,s=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]));}
+function renderPatients(){document.getElementById('patients').innerHTML=patientNames.map((name,i)=>`<div class="patient ${i===0?'active':''}"><div class="avatar">${name[0]}</div><div><div class="pname">${name}</div><div class="pmeta">${i%3===0?'女':'男'}　|　${76+i}岁</div></div><button class="group">${i%2?'对照组':'干预组'}</button></div>`).join('');}
+function renderTabs(){document.getElementById('recordTabs').innerHTML=tabNames.map((name,i)=>`<span class="${i===0?'active':''}">${name}</span>`).join('');}
+function allSections(){return [baseSections.find(u=>u.title==='知情同意书')||{id:'consent',title:'知情同意书',metrics:[],description:''}, ...yellowUnits, baseSections.find(u=>u.title==='入院记录')||{id:'admission',title:'入院记录',metrics:['入院日期','附件','入院原因','主诉','现病史','个人史','家族史','既往史'],description:''}].filter(Boolean);}
+function metricName(m){return typeof m==='string'?m:m.name;}
+function metricType(m){return typeof m==='string'?typeForMetricLegacy(m):(m.type||'单行文本');}
+function typeForMetricLegacy(metric){if(/序号|剂量|次数|数量|时间|日期|年龄|评分|分值/.test(metric))return'数值';if(/病史|地址|原因|描述|情况|备注|诊断|主诉/.test(metric))return'多行文本';return'单行文本';}
+function displayValue(value){if(Array.isArray(value))return value.join('、')||'--';return value||'--';}
+function getSectionRows(section){if(state.records[section.id])return [state.records[section.id]];if(section.id==='unit-73'&&state.syncedSAERecord)return [state.syncedSAERecord];return [];}
+function renderRepeatingTable(section){const metrics=section.metrics&&section.metrics.length?section.metrics:['名称','开始日期','结束日期'];const rows=getSectionRows(section);const showAction=['合并用药','用药史','不良事件','严重不良事件'].includes(section.title);return `<div class="body"><table class="metric-table"><thead><tr>${metrics.map(m=>`<th>${escapeHtml(metricName(m))}</th>`).join('')}${showAction?'<th>操作</th>':''}</tr></thead><tbody>${rows.length?rows.map((row,rowIndex)=>`<tr>${metrics.map(m=>`<td>${escapeHtml(displayValue(row[metricName(m)]))}</td>`).join('')}${showAction?`<td><button class="detail-btn" data-detail-section="${section.id}" data-detail-index="${rowIndex}">详情</button></td>`:''}</tr>`).join(''):`<tr>${metrics.map(()=>'<td>--</td>').join('')}${showAction?'<td>--</td>':''}</tr><tr>${metrics.map(()=>'<td>--</td>').join('')}${showAction?'<td>--</td>':''}</tr>`}</tbody></table></div>`;}
+function renderView(section){const repeating=['合并用药','用药史','不良事件','严重不良事件','不良记录','严重不良记录'];if(repeating.includes(section.title))return renderRepeatingTable(section);if(section.title==='体温')return `<div class="body"><div class="view-row"><span class="label">体温:</span><span class="value">-- ℃</span></div></div>`;if(section.title==='氧饱和度')return `<div class="body"><div class="view-row"><span class="label">氧饱和度:</span><span class="value">-- %</span></div></div>`;const metrics=section.metrics&&section.metrics.length?section.metrics:[section.title];if(section.title==='入院记录'){return `<div class="body"><div class="view-row"><span class="label">入院日期:</span><span class="value">--</span></div><div class="view-row"><span class="label">附件:</span><span class="value">无附件</span></div><div class="view-row"><span class="label">入院原因:</span><span class="value">--</span></div><div class="view-row"><span class="label">主诉:</span><span class="value">--</span></div><div class="view-row"><span class="label">现病史:</span><span class="value">--</span></div></div>`;}return `<div class="body">${metrics.map(m=>`<div class="view-row"><span class="label">${escapeHtml(metricName(m))}:</span><span class="value">--</span></div>`).join('')}</div>`;}
+function renderEditor(section){
+const metrics=(section.metrics&&section.metrics.length?section.metrics:[{name:'知情同意书',type:'单行文本'}]).filter(function(metric){return metricName(metric)!=='序号';});
+const needAttachment=!['基本信息','体温','氧饱和度','既往史'].includes(section.title);
+const attachmentHtml=needAttachment?'<div class="field"><label>附件:</label><div class="upload">☁ 点击上传，或将图片拖动到此区域，支持jpg、jpeg、png等格式</div></div>':'';
+return `<div class="body editor">${metrics.map(function(metric,i){
+var t=metricType(metric);
+var name=metricName(metric);
+var opts=metric.options||[];
+var note='';
+var dataName=`data-field-name="${escapeHtml(name)}"`;
+var inputHtml='';
+if(t==='单选'){inputHtml=`<div class="radio-line">${opts.map(function(o){return `<label><input type="radio" name="${escapeHtml(section.id+'-'+name)}" value="${escapeHtml(o)}" ${dataName} data-interaction="${t}"> ${escapeHtml(o)}</label>`;}).join('')}</div>`;}
+else if(t==='下拉选择'||t==='下拉单选'||t==='同步数据/下拉单选'){inputHtml=`<select class="input" ${dataName} data-interaction="${t}"><option value="">请选择</option>${opts.map(function(o){return `<option value="${escapeHtml(o)}">${escapeHtml(o)}</option>`;}).join('')}</select>`;}
+else if(t==='可输入下拉单选'){var listId=`list-${section.id}-${i}`;inputHtml=`<input class="input" list="${listId}" placeholder="请选择或输入" ${dataName} data-interaction="${t}"><datalist id="${listId}">${opts.map(function(o){return `<option value="${escapeHtml(o)}"></option>`;}).join('')}</datalist>`;}
+else if(t==='下拉多选'){inputHtml=`<div class="checkbox-line">${opts.map(function(o){return `<label><input type="checkbox" value="${escapeHtml(o)}" ${dataName} data-interaction="${t}"> ${escapeHtml(o)}</label>`;}).join('')}</div>`;}
+else if(t==='多行文本'){inputHtml=`<textarea class="textarea" placeholder="请输入" maxlength="${metric.length||500}" ${dataName} data-interaction="${t}"></textarea>`;}
+else if(t==='日期选择'){inputHtml=`<input type="date" class="input" ${dataName} data-interaction="${t}">`;}
+else if(t==='数值'){var len=metric.length||10;var unit=metric.unit||'';var step=metric.decimal?String(1/Math.pow(10,metric.decimal)):'any';inputHtml=`<input type="number" class="input" placeholder="请输入数值" maxlength="${len}" min="0" step="${step}" ${dataName} data-interaction="${t}">${unit?`<span class="unit">${escapeHtml(unit)}</span>`:''}`;}
+else {var len=metric.length||50;inputHtml=`<input class="input" placeholder="请输入" maxlength="${len}" ${dataName} data-interaction="${t}">`;}
+return `<div class="field"><label>${escapeHtml(name)}:</label><div class="field-stack">${inputHtml}${note}</div></div>`;
+}).join('')}${attachmentHtml}<div class="actions"><button class="btn" data-save="${section.id}">保存</button><button class="btn secondary" data-cancel="${section.id}">取消</button></div></div>`;
+}
+function collectEditorValues(){var values={};document.querySelectorAll('.editor [data-field-name]').forEach(function(input){var name=input.getAttribute('data-field-name');if(input.type==='radio'){if(input.checked)values[name]=input.value;}else if(input.type==='checkbox'){if(!values[name])values[name]=[];if(input.checked)values[name].push(input.value);}else{values[name]=input.value;}});return values;}
+function syncSeriousAdverseEvent(values){if(values['是否为SAE']!=='是')return;state.syncedSAERecord={
+  'SAE名称':values['名称']||'--',
+  'SAE详细描述':values['名称']||'--',
+  '符合SAE标准日期':values['开始日期']||'--',
+  '严重程度':values['严重程度']||'--',
+  '与试药药物关系':values['与研究药物关系']||'--',
+  '对试药药物采取措施':values['对研究药物采取措施']||'--',
+  'SAE转归':values['转归']||'--'
+};}
+function handleSave(sectionId){var values=collectEditorValues();state.records[sectionId]=values;if(sectionId==='unit-72')syncSeriousAdverseEvent(values);state.editingId='';renderCrf();}
+function showRecordDetail(sectionId,index){const section=allSections().find(function(item){return item.id===sectionId;});if(!section){alert('未找到记录');return;}const row=getSectionRows(section)[index];if(!row||!Object.keys(row).length){alert('暂无填写内容');return;}alert(section.title+'详情\n'+Object.entries(row).map(function(entry){return entry[0]+'：'+displayValue(entry[1]);}).join('\n'));}
+function renderSection(section,index){var editing=state.editingId===section.id;return `<section class="section"><div class="section-head"><span class="section-title ${section.isYellow?'yellow':''}">${escapeHtml(section.title)}</span><span class="switch disabled"></span><span class="lock">🔒</span><span class="meta-line">上次编辑人/时间：${index===0?'海敏琪/2026-06-15 11:38:10':'--/--'}</span><button class="edit-link" data-edit="${section.id}">✎ 编辑</button></div>${editing?renderEditor(section):renderView(section)}</section>`;}
+function renderCrf(){document.getElementById('crf').innerHTML=allSections().map(renderSection).join('');document.querySelectorAll('[data-edit]').forEach(function(btn){btn.onclick=function(){state.editingId=btn.dataset.edit;renderCrf();}});document.querySelectorAll('[data-cancel]').forEach(function(btn){btn.onclick=function(){state.editingId='';renderCrf();}});document.querySelectorAll('[data-save]').forEach(function(btn){btn.onclick=function(){handleSave(btn.dataset.save);};});document.querySelectorAll('[data-detail-section]').forEach(function(btn){btn.onclick=function(){showRecordDetail(btn.dataset.detailSection,Number(btn.dataset.detailIndex||0));};});schedulePrototypeMark();}
+function clearPrototypeMarks(){document.querySelectorAll('.proto-marker').forEach(function(marker){marker.remove();});document.querySelectorAll('.proto-element').forEach(function(element){element.classList.remove('proto-element','active-highlight');element.removeAttribute('data-proto-id');});}
+function addPrototypeMark(element,protoId){if(!element)return;element.classList.add('proto-element');element.setAttribute('data-proto-id',protoId);var marker=document.createElement('span');marker.className='proto-marker';marker.textContent=protoId;marker.title='查看说明 '+protoId;marker.tabIndex=0;marker.addEventListener('click',function(event){event.preventDefault();event.stopPropagation();openPrototypeDescription(protoId);});marker.addEventListener('keydown',function(event){if(event.key==='Enter'||event.key===' '){event.preventDefault();event.stopPropagation();openPrototypeDescription(protoId);}});element.appendChild(marker);}
+function schedulePrototypeMark(){setTimeout(markPrototypeElements,0);}
+function markPrototypeElements(){clearPrototypeMarks();var yellowTitle=document.querySelector('.section-title.yellow');addPrototypeMark(yellowTitle,'1');addPrototypeMark(yellowTitle&&yellowTitle.closest('.section-head')?yellowTitle.closest('.section-head').querySelector('.edit-link'):null,'2');addPrototypeMark(document.querySelector('.editor .field label'),'3');addPrototypeMark(document.querySelector('.editor select, .editor input[type="radio"]'),'4');bindPrototypeHover();requestAnimationFrame(drawConnections);}
+function drawConnections(){var svg=document.getElementById('connections');if(!svg)return;svg.innerHTML='';if(document.querySelector('.prototype-shell').classList.contains('interface-only')||window.innerWidth<=768)return;document.querySelectorAll('.proto-element[data-proto-id]').forEach(function(leftElement){var protoId=leftElement.getAttribute('data-proto-id');var rightElement=document.querySelector('.proto-desc[data-proto-id="'+protoId+'"]');if(!rightElement)return;var leftRect=leftElement.getBoundingClientRect();var rightRect=rightElement.getBoundingClientRect();var svgRect=svg.getBoundingClientRect();var x1=leftRect.right-svgRect.left;var y1=leftRect.top+leftRect.height/2-svgRect.top;var x2=rightRect.left-svgRect.left;var y2=rightRect.top+rightRect.height/2-svgRect.top;var cp1x=x1+(x2-x1)*.5;var cp2x=x1+(x2-x1)*.5;var path=document.createElementNS('http://www.w3.org/2000/svg','path');path.setAttribute('d','M '+x1+' '+y1+' C '+cp1x+' '+y1+', '+cp2x+' '+y2+', '+x2+' '+y2);path.setAttribute('class','connection-line');path.setAttribute('data-proto-id',protoId);svg.appendChild(path);var midX=(x1+x2)/2;var midY=(y1+y2)/2;var circle=document.createElementNS('http://www.w3.org/2000/svg','circle');circle.setAttribute('cx',midX);circle.setAttribute('cy',midY);circle.setAttribute('r',11);circle.setAttribute('class','connection-label-bg');svg.appendChild(circle);var text=document.createElementNS('http://www.w3.org/2000/svg','text');text.setAttribute('x',midX);text.setAttribute('y',midY);text.setAttribute('dy','0.05em');text.setAttribute('class','connection-label');text.textContent=protoId;svg.appendChild(text);});}
+function highlightPrototype(protoId,active){document.querySelectorAll('[data-proto-id="'+protoId+'"]').forEach(function(element){element.classList.toggle('active-highlight',active);});document.querySelectorAll('.connection-line[data-proto-id="'+protoId+'"]').forEach(function(line){line.classList.toggle('active',active);});}
+function bindPrototypeHover(){document.querySelectorAll('.proto-element[data-proto-id], .proto-desc[data-proto-id]').forEach(function(element){var protoId=element.getAttribute('data-proto-id');element.onmouseenter=function(){highlightPrototype(protoId,true);};element.onmouseleave=function(){highlightPrototype(protoId,false);};});}
+function openPrototypeDescription(protoId){var shell=document.querySelector('.prototype-shell');var button=document.getElementById('mobileToggle');shell.classList.remove('interface-only');mobilePrototypeMode='both';button.textContent='仅界面';var desc=document.querySelector('.proto-desc[data-proto-id="'+protoId+'"]');if(desc){desc.scrollIntoView({behavior:'smooth',block:'center'});highlightPrototype(protoId,true);setTimeout(function(){highlightPrototype(protoId,false);},1200);}requestAnimationFrame(drawConnections);}
+var mobilePrototypeMode='both';function toggleMobilePrototypeView(){var shell=document.querySelector('.prototype-shell');var button=document.getElementById('mobileToggle');mobilePrototypeMode=mobilePrototypeMode==='both'?'interface':'both';shell.classList.toggle('interface-only',mobilePrototypeMode==='interface');button.textContent=mobilePrototypeMode==='interface'?'界面+说明':'仅界面';requestAnimationFrame(drawConnections);}
+window.addEventListener('resize',function(){requestAnimationFrame(drawConnections);});document.getElementById('left-panel').addEventListener('scroll',function(){requestAnimationFrame(drawConnections);});document.getElementById('right-panel').addEventListener('scroll',function(){requestAnimationFrame(drawConnections);});
+renderPatients();renderTabs();renderCrf();</script>
+</body>
+</html>
