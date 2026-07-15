@@ -292,6 +292,21 @@
       }, []);
     }
 
+    const adverseEventUnit = units.find(unit => unit.id === 'unit-72');
+    const hiddenSeriousAdverseEventUnit = units.find(unit => unit.id === 'unit-73');
+    if (hiddenSeriousAdverseEventUnit) hiddenSeriousAdverseEventUnit.hidden = true;
+    if (adverseEventUnit) {
+      const mergedMetrics = [
+        '序号', '名称', '开始日期', '结束日期', '严重程度', '与研究药物关系', '对研究药物采取措施', '转归',
+        '是否为SAE', 'SAE类型', 'SAE详细描述', '符合SAE标准日期', '针对SAE采取的治疗措施',
+        '（若死亡）死亡原因', '（若死亡）死亡日期', '揭盲情况', '揭盲人', '揭盲时间',
+        '上报伦理委员会日期', '上报申办方日期', '是否为SUSAR'
+      ];
+      adverseEventUnit.displayName = '（严重）不良事件';
+      adverseEventUnit.name = `（严重）不良事件（${mergedMetrics.join('、')}）`;
+      adverseEventUnit.metrics = mergedMetrics;
+    }
+
     const categoryList = document.getElementById('categoryList');
     const libraryList = document.getElementById('libraryList');
     const selectedList = document.getElementById('selectedList');
@@ -314,6 +329,7 @@
 
     function getFilteredUnits() {
       return units.filter(unit => {
+        if (unit.hidden) return false;
         const categoryMatch = !state.activeCategory || unit.category === state.activeCategory;
         const queryMatch = !state.query || unit.name.includes(state.query) || unit.displayName.includes(state.query);
         return categoryMatch && queryMatch;
@@ -457,6 +473,29 @@
         '上报伦理委员会日期': 'ethicsCommitteeReportDate',
         '上报申办方日期': 'sponsorReportDate'
       };
+      Object.assign(metricMap, {
+        '序号': 'sequenceNo',
+        '名称': 'name',
+        '开始日期': 'startDate',
+        '结束日期': 'endDate',
+        '严重程度': 'severity',
+        '与研究药物关系': 'relationshipWithStudyDrug',
+        '对研究药物采取措施': 'actionTakenWithStudyDrug',
+        '转归': 'outcome',
+        '是否为SAE': 'isSAE',
+        'SAE类型': 'saeType',
+        'SAE详细描述': 'saeDescription',
+        '符合SAE标准日期': 'saeCriteriaDate',
+        '针对SAE采取的治疗措施': 'saeTreatment',
+        '（若死亡）死亡原因': 'deathCauseIfDeath',
+        '（若死亡）死亡日期': 'deathDateIfDeath',
+        '揭盲情况': 'unblindingStatus',
+        '揭盲人': 'unblindedBy',
+        '揭盲时间': 'unblindingTime',
+        '上报伦理委员会日期': 'ethicsCommitteeReportDate',
+        '上报申办方日期': 'sponsorReportDate',
+        '是否为SUSAR': 'isSUSAR'
+      });
       if (metricMap[metric]) return metricMap[metric];
       return 'field' + String(metric || '').split('').reduce((sum, char) => sum + char.charCodeAt(0), 0);
     }
