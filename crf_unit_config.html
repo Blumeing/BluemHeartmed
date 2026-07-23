@@ -280,7 +280,14 @@
     if (concomitantMedicationUnit) {
       concomitantMedicationUnit.name = concomitantMedicationUnit.name.replace(/是否继续/g, '是否持续');
       concomitantMedicationUnit.metrics = concomitantMedicationUnit.metrics.map(metric => metric === '是否继续' ? '是否持续' : metric);
+      concomitantMedicationUnit.isYellow = false;
     }
+
+    const basicInfoUnit = units.find(unit => unit.id === 'unit-5');
+    if (basicInfoUnit) basicInfoUnit.ocr = '有';
+
+    const medicationHistoryUnit = units.find(unit => unit.id === 'unit-12');
+    if (medicationHistoryUnit) medicationHistoryUnit.disableMetricConfig = true;
 
     const seriousAdverseEventUnit = units.find(unit => unit.id === 'unit-73');
     if (seriousAdverseEventUnit) {
@@ -305,6 +312,8 @@
       adverseEventUnit.displayName = '（严重）不良事件';
       adverseEventUnit.name = `（严重）不良事件（${mergedMetrics.join('、')}）`;
       adverseEventUnit.metrics = mergedMetrics;
+      adverseEventUnit.ocr = null;
+      adverseEventUnit.image = 'NA';
     }
 
     const categoryList = document.getElementById('categoryList');
@@ -407,7 +416,7 @@
               </div>
             </div>
             <div class="selected-actions">
-              ${unit.metrics.length ? `<button class="icon-btn metric-btn" data-id="${unit.id}" title="查看指标">⚙</button>` : ''}
+              ${unit.metrics.length && !unit.disableMetricConfig ? `<button class="icon-btn metric-btn" data-id="${unit.id}" title="查看指标">⚙</button>` : ''}
               <button class="icon-btn delete-btn" data-id="${unit.id}" title="移除单元">🗑</button>
             </div>
           </div>
