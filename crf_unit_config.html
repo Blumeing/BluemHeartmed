@@ -82,8 +82,8 @@
   </style>
 </head>
 <body>
-  <div class="prototype-shell">
-  <button class="mobile-toggle-btn" id="mobileToggle" onclick="toggleMobilePrototypeView()">仅界面</button>
+  <div class="prototype-shell interface-only">
+  <button class="mobile-toggle-btn" id="mobileToggle" onclick="toggleMobilePrototypeView()">界面+说明</button>
   <div id="left-panel">
   <div class="page">
     <section class="column library-column">
@@ -286,8 +286,42 @@
     const basicInfoUnit = units.find(unit => unit.id === 'unit-5');
     if (basicInfoUnit) basicInfoUnit.ocr = '有';
 
+    const admissionRecordUnit = units.find(unit => unit.id === 'unit-7');
+    if (admissionRecordUnit) {
+      admissionRecordUnit.ocr = '有';
+      admissionRecordUnit.description = '出院病例的一部分，包含“入院日期、入院原因、主诉等”';
+      admissionRecordUnit.isYellow = true;
+    }
+
+    const dischargeRecordUnit = units.find(unit => unit.id === 'unit-9');
+    if (dischargeRecordUnit) {
+      dischargeRecordUnit.ocr = '有';
+      dischargeRecordUnit.isYellow = true;
+    }
+
+    const pastHistoryUnit = units.find(unit => unit.id === 'unit-10');
+    if (pastHistoryUnit) pastHistoryUnit.description = '主要包含是否吸烟、是否饮酒、是否半年以上高原旅居史等';
+
+    const medicalHistoryUnit = units.find(unit => unit.id === 'unit-11');
+    if (medicalHistoryUnit) {
+      medicalHistoryUnit.description = '主要包含诊断、家族史、个人史、既往病史等';
+      if (!medicalHistoryUnit.metrics.includes('个人史')) {
+        const familyIndex = medicalHistoryUnit.metrics.indexOf('家族史');
+        medicalHistoryUnit.metrics.splice(familyIndex >= 0 ? familyIndex + 1 : medicalHistoryUnit.metrics.length, 0, '个人史');
+      }
+    }
+
     const medicationHistoryUnit = units.find(unit => unit.id === 'unit-12');
-    if (medicationHistoryUnit) medicationHistoryUnit.disableMetricConfig = true;
+    if (medicationHistoryUnit) {
+      medicationHistoryUnit.description = '既往史的一部分，可从既往史中进行提取';
+      medicationHistoryUnit.disableMetricConfig = true;
+    }
+
+    const temperatureUnit = units.find(unit => unit.id === 'unit-18');
+    if (temperatureUnit) temperatureUnit.description = '不可设备采集，可由CRC录入';
+
+    const oxygenSaturationUnit = units.find(unit => unit.id === 'unit-19');
+    if (oxygenSaturationUnit) oxygenSaturationUnit.description = '不可设备采集，可由CRC录入';
 
     const seriousAdverseEventUnit = units.find(unit => unit.id === 'unit-73');
     if (seriousAdverseEventUnit) {
@@ -311,6 +345,7 @@
       ];
       adverseEventUnit.displayName = '（严重）不良事件';
       adverseEventUnit.name = `（严重）不良事件（${mergedMetrics.join('、')}）`;
+      adverseEventUnit.description = '暂不支持同步，可由CRC录入';
       adverseEventUnit.metrics = mergedMetrics;
       adverseEventUnit.ocr = null;
       adverseEventUnit.image = 'NA';
@@ -701,7 +736,7 @@
       requestAnimationFrame(drawConnections);
     }
 
-    let mobilePrototypeMode = 'both';
+    let mobilePrototypeMode = 'interface';
     function toggleMobilePrototypeView() {
       const shell = document.querySelector('.prototype-shell');
       const button = document.getElementById('mobileToggle');
