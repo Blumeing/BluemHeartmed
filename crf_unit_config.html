@@ -284,7 +284,10 @@
     }
 
     const basicInfoUnit = units.find(unit => unit.id === 'unit-5');
-    if (basicInfoUnit) basicInfoUnit.ocr = '有';
+    if (basicInfoUnit) {
+      basicInfoUnit.ocr = '有';
+      basicInfoUnit.disableMetricConfig = true;
+    }
 
     const admissionRecordUnit = units.find(unit => unit.id === 'unit-7');
     if (admissionRecordUnit) {
@@ -300,7 +303,10 @@
     }
 
     const pastHistoryUnit = units.find(unit => unit.id === 'unit-10');
-    if (pastHistoryUnit) pastHistoryUnit.description = '主要包含是否吸烟、是否饮酒、是否半年以上高原旅居史等';
+    if (pastHistoryUnit) {
+      pastHistoryUnit.description = '主要包含是否吸烟、是否饮酒、是否半年以上高原旅居史等';
+      pastHistoryUnit.hidden = true;
+    }
 
     const medicalHistoryUnit = units.find(unit => unit.id === 'unit-11');
     if (medicalHistoryUnit) {
