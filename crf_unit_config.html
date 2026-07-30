@@ -150,7 +150,6 @@
               <span class="tag">图片</span></div>
             </div>
             <div class="selected-actions">
-              <button class="icon-btn metric-btn" data-id="unit-4" title="查看指标">⚙</button>
               <button class="icon-btn delete-btn" data-id="unit-4" title="移除单元">🗑</button>
             </div>
           </div>
@@ -281,6 +280,7 @@
       concomitantMedicationUnit.name = concomitantMedicationUnit.name.replace(/是否继续/g, '是否持续');
       concomitantMedicationUnit.metrics = concomitantMedicationUnit.metrics.map(metric => metric === '是否继续' ? '是否持续' : metric);
       concomitantMedicationUnit.isYellow = false;
+      concomitantMedicationUnit.disableMetricConfig = true;
     }
 
     const basicInfoUnit = units.find(unit => unit.id === 'unit-5');
