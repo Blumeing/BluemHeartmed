@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OCR与EDC录入优化弹框</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
+      color: #263550;
+      background: #eef2f7;
+    }
+    .page {
+      min-height: 100vh;
+      padding: 60px 0;
+      background:
+        linear-gradient(rgba(15, 23, 42, .55), rgba(15, 23, 42, .55)),
+        repeating-linear-gradient(0deg, #f6f8fb 0, #f6f8fb 48px, #e7edf5 49px);
+    }
+    .modal {
+      width: min(1200px, calc(100vw - 64px));
+      height: min(850px, calc(100vh - 80px));
+      margin: 0 auto;
+      background: #fff;
+      border-radius: 4px;
+      box-shadow: 0 16px 44px rgba(15, 23, 42, .22);
+      display: grid;
+      grid-template-rows: 50px 1fr 64px;
+      overflow: hidden;
+    }
+    .topbar, .footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid #e5eaf2;
+      padding: 0 16px;
+    }
+    .topbar h1 {
+      margin: 0;
+      font-size: 18px;
+      color: #101828;
+      display: inline-block;
+    }
+    .topbar span { margin-left: 14px; color: #6b7894; font-size: 14px; }
+    .close { border: 0; background: transparent; color: #7b88a1; font-size: 28px; cursor: pointer; }
+    .content {
+      min-height: 0;
+      display: grid;
+      grid-template-columns: 40% 60%;
+    }
+    .left {
+      min-width: 0;
+      padding: 14px 12px 16px 30px;
+      border-right: 1px solid #dfe5ef;
+      overflow: hidden;
+      display: grid;
+      grid-template-rows: auto auto 1fr;
+      gap: 14px;
+    }
+    .section-label {
+      position: relative;
+      font-size: 15px;
+      color: #263550;
+      margin: 0;
+    }
+    .section-label::before {
+      content: "";
+      width: 6px;
+      height: 18px;
+      border-radius: 2px;
+      background: #2f73ff;
+      position: absolute;
+      left: -20px;
+      top: 1px;
+    }
+    .thumbs { display: flex; gap: 10px; }
+    .thumb {
+      width: 78px;
+      height: 86px;
+      border: 1px solid #2f73ff;
+      border-radius: 4px;
+      background: #f3f6fb;
+      padding: 4px;
+      color: #263550;
+      font-size: 12px;
+      box-shadow: 0 2px 8px rgba(15, 23, 42, .14);
+    }
+    .thumb b {
+      display: inline-block;
+      border: 1px solid #2f73ff;
+      background: #fff;
+      color: #0f5cff;
+      padding: 0 4px;
+      line-height: 18px;
+      margin-bottom: 4px;
+    }
+    .thumb .mini {
+      height: 44px;
+      background: linear-gradient(135deg, #dfe6f3, #fff 48%, #bfc8d7);
+      border-radius: 2px;
+      margin-bottom: 4px;
+    }
+    .preview {
+      min-height: 0;
+      border-radius: 8px;
+      background: #f6f8fb;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .paper {
+      width: 72%;
+      aspect-ratio: 3 / 4;
+      background: #f5f0e8;
+      border: 1px solid #c8ced8;
+      box-shadow: 0 12px 28px rgba(15, 23, 42, .25);
+      transform: rotate(.5deg);
+      padding: 24px;
+    }
+    .paper h2 { margin: 0 0 18px; text-align: center; font-size: 18px; color: #111827; }
+    .paper p { height: 7px; margin: 9px 0; background: #374151; opacity: .35; }
+    .zoom { position: absolute; right: 18px; bottom: 14px; color: #334260; font-size: 14px; }
+    .right {
+      min-width: 0;
+      padding: 14px 24px 0 16px;
+      overflow: auto;
+    }
+    .status {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      color: #263550;
+      font-size: 15px;
+      margin-bottom: 12px;
+    }
+    .status .bar {
+      width: 108px;
+      height: 6px;
+      border-radius: 999px;
+      background: #e8edf5;
+    }
+    .chips, .groups { display: flex; flex-wrap: wrap; gap: 8px; }
+    .chip {
+      height: 32px;
+      padding: 0 12px;
+      border: 1px solid #d6deeb;
+      border-radius: 4px;
+      background: #fff;
+      color: #334260;
+      cursor: pointer;
+    }
+    .chip.active { border-color: #2167ff; color: #175ff2; }
+    .group-card {
+      width: min(600px, 100%);
+      margin: 12px 0 14px;
+      border: 1px solid #2167ff;
+      border-radius: 4px;
+      background: #f5f9ff;
+      padding: 8px 12px;
+      color: #175ff2;
+      line-height: 20px;
+    }
+    .toolbar {
+      position: sticky;
+      top: -14px;
+      z-index: 4;
+      background: rgba(255,255,255,.96);
+      border-bottom: 1px solid #e6ebf3;
+      padding: 0 0 10px;
+      backdrop-filter: blur(6px);
+    }
+    .compare-mode {
+      margin-top: 10px;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      color: #6b7894;
+      font-size: 13px;
+    }
+    .compare-mode button {
+      border: 1px solid #d6deeb;
+      background: #fff;
+      color: #334260;
+      border-radius: 4px;
+      height: 28px;
+      padding: 0 10px;
+    }
+    .compare-mode .active { background: #2f73ff; border-color: #2f73ff; color: #fff; }
+    .panel {
+      border-bottom: 1px solid #e6ebf3;
+      padding-bottom: 12px;
+      margin-bottom: 12px;
+    }
+    .panel-head {
+      height: 42px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: #334260;
+    }
+    .toggle {
+      width: 18px;
+      height: 18px;
+      border: 1px solid #cbd5e1;
+      border-radius: 2px;
+      background: #fff;
+      color: #334260;
+    }
+    .panel-head strong { font-size: 16px; font-weight: 500; }
+    .panel-head span { color: #71809b; }
+    .field-list {
+      border: 1px solid #e6ebf3;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .field-header, .field-row {
+      display: grid;
+      grid-template-columns: 132px minmax(120px, .8fr) minmax(180px, 1fr);
+      gap: 12px;
+      align-items: start;
+    }
+    .field-header {
+      background: #f6f8fb;
+      color: #6b7894;
+      font-size: 13px;
+      padding: 10px 12px;
+      font-weight: 500;
+    }
+    .field-row {
+      min-height: 46px;
+      padding: 8px 12px;
+      border-top: 1px solid #eef2f7;
+      font-size: 14px;
+    }
+    .metric {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 32px;
+      color: #263550;
+      font-weight: 500;
+    }
+    input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      accent-color: #2f73ff;
+      margin: 0;
+    }
+    .ocr, .edc-input, .edc-select, textarea {
+      width: 100%;
+      min-height: 32px;
+      border: 1px solid #d8e0ec;
+      border-radius: 4px;
+      padding: 6px 9px;
+      background: #fff;
+      color: #263550;
+      font: inherit;
+      font-size: 14px;
+    }
+    .ocr { background: #fbfcff; color: #42506a; }
+    .diff { border-color: #f59e0b; background: #fffaf0; }
+    .same { border-color: #9ed5b1; background: #f4fff7; }
+    .edc-select { color: #8b96aa; }
+    textarea {
+      min-height: 86px;
+      resize: vertical;
+      line-height: 22px;
+    }
+    .edc-rich { position: relative; }
+    .structure-btn {
+      position: absolute;
+      right: 10px;
+      top: 48px;
+      height: 30px;
+      border: 0;
+      border-radius: 3px;
+      padding: 0 12px;
+      color: #fff;
+      background: #2f73ff;
+      cursor: pointer;
+    }
+    .tags {
+      margin-top: 8px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .tags span {
+      border: 1px solid #d8e0ec;
+      color: #1761ff;
+      background: #fff;
+      border-radius: 2px;
+      padding: 4px 8px;
+    }
+    .confidence {
+      display: inline-block;
+      margin-left: 6px;
+      padding: 0 6px;
+      border-radius: 10px;
+      font-size: 12px;
+      color: #166534;
+      background: #dcfce7;
+      font-weight: 400;
+    }
+    .table-compare {
+      grid-column: 2 / 4;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      min-width: 0;
+    }
+    .subtable {
+      min-width: 0;
+      border: 1px solid #e3e8f1;
+      border-radius: 4px;
+      overflow: auto;
+      background: #fff;
+    }
+    .subtable h4 {
+      margin: 0;
+      padding: 8px 10px;
+      background: #f6f8fb;
+      color: #334260;
+      font-size: 13px;
+    }
+    table {
+      width: 100%;
+      min-width: 460px;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    th, td {
+      border-top: 1px solid #eef2f7;
+      border-right: 1px solid #eef2f7;
+      padding: 7px 8px;
+      text-align: left;
+      white-space: nowrap;
+    }
+    th { color: #6b7894; background: #fbfcff; font-weight: 500; }
+    td:last-child, th:last-child { border-right: 0; }
+    td input {
+      width: 100%;
+      min-width: 76px;
+      height: 28px;
+      border: 1px solid #d8e0ec;
+      border-radius: 3px;
+      padding: 0 6px;
+      font: inherit;
+    }
+    .row-tools {
+      margin: 8px 0 0;
+      display: flex;
+      gap: 8px;
+    }
+    .row-tools button {
+      height: 30px;
+      border: 1px solid #d8e0ec;
+      background: #fff;
+      border-radius: 4px;
+      padding: 0 10px;
+      color: #334260;
+    }
+    .footer {
+      border-top: 1px solid #e5eaf2;
+      border-bottom: 0;
+      justify-content: flex-end;
+      gap: 12px;
+    }
+    .footer button {
+      height: 36px;
+      border-radius: 4px;
+      padding: 0 18px;
+      border: 1px solid #d6deeb;
+      background: #fff;
+      color: #334260;
+    }
+    .footer .primary {
+      border-color: #2f73ff;
+      background: #2f73ff;
+      color: #fff;
+      font-weight: 500;
+    }
+    @media (max-width: 1100px) {
+      .modal { width: calc(100vw - 32px); }
+      .content { grid-template-columns: 34% 66%; }
+      .field-header, .field-row { grid-template-columns: 122px 1fr; }
+      .field-header span:nth-child(3) { display: none; }
+      .edc-cell { grid-column: 2; }
+      .table-compare { grid-column: 1 / 3; grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="modal" role="dialog" aria-label="附件分类确认与OCR指标录入">
+      <header class="topbar">
+        <div>
+          <h1>附件分类确认与OCR指标录入</h1>
+          <span>崔惠霞 · 基线记录 2024-11-06</span>
+        </div>
+        <button class="close" aria-label="关闭">×</button>
+      </header>
+
+      <section class="content">
+        <aside class="left">
+          <p class="section-label">全部附件(2)</p>
+          <div class="thumbs">
+            <div class="thumb"><b>SDV</b><div class="mini"></div>合并用药</div>
+            <div class="thumb"><b>待录入</b><div class="mini"></div>电解质、肝...</div>
+          </div>
+          <div class="preview">
+            <div class="paper">
+              <h2>入院记录</h2>
+              <p style="width:80%"></p><p style="width:68%"></p><p style="width:76%"></p>
+              <p style="width:92%"></p><p style="width:86%"></p><p style="width:88%"></p>
+              <p style="width:70%"></p><p style="width:94%"></p><p style="width:83%"></p>
+              <p style="width:91%"></p><p style="width:78%"></p><p style="width:87%"></p>
+              <p style="width:68%"></p><p style="width:90%"></p><p style="width:82%"></p>
+            </div>
+            <div class="zoom">⌕ 100% ⌕ ↻</div>
+          </div>
+        </aside>
+
+        <section class="right">
+          <div class="toolbar">
+            <div class="status">
+              <strong>待录入</strong>
+              <span>|</span>
+              <span>AI结构化完成度:</span>
+              <i class="bar"></i>
+              <span>0%</span>
+            </div>
+            <div class="chips">
+              <button class="chip">全血细胞分析</button>
+              <button class="chip active">入院记录</button>
+              <button class="chip active">血压</button>
+              <button class="chip active">血糖</button>
+              <button class="chip active">身高体重</button>
+              <button class="chip active">心率</button>
+              <button class="chip active">出院记录</button>
+            </div>
+            <div class="group-card">
+              <strong>入院记录P1/血压P1/血糖P1/身高体重P1/心率P1/出院记录P1</strong><br>
+              入院记录、血压、血糖、身高体重、心率、出院记录
+            </div>
+            <div class="compare-mode">
+              对比显示：
+              <button class="active">全部字段</button>
+              <button>仅差异</button>
+              <button>仅未确认</button>
+              <span>黄色=OCR与EDC不一致，绿色=一致</span>
+            </div>
+          </div>
+
+          <article class="panel">
+            <div class="panel-head"><button class="toggle">−</button><strong>入院记录</strong><span>4个指标　0/4 已确认</span></div>
+            <div class="field-list">
+              <div class="field-header"><span>字段</span><span>OCR识别值</span><span>EDC待录入值</span></div>
+              <div class="field-row">
+                <label class="metric"><input type="checkbox" checked>入院日期</label>
+                <div class="ocr same">2026-08-11 <span class="confidence">98%</span></div>
+                <input class="edc-input same" value="2026-08-11">
+              </div>
+              <div class="field-row">
+                <label class="metric"><input type="checkbox" checked>入院原因</label>
+                <div class="ocr diff">计划入院 <span class="confidence">92%</span></div>
+                <div class="edc-cell">
+                  <select class="edc-select diff">
+                    <option selected>计划入院</option>
+                    <option>首次入院</option>
+                    <option>其他非不良事件</option>
+                    <option>不良事件</option>
+                  </select>
+                </div>
+              </div>
+              <div class="field-row">
+                <label class="metric"><input type="checkbox" checked>主诉</label>
+                <div class="ocr">发货后股份回购</div>
+                <div class="edc-rich edc-cell">
+                  <textarea>腰痛，流泪</textarea>
+                  <button class="structure-btn">结构化</button>
+                  <div class="tags"><span>畏光流泪 ×</span><span>腰痛 ×</span></div>
+                </div>
+              </div>
+            </div>
+          </article>
+
+          <article class="panel">
+            <div class="panel-head"><button class="toggle">−</button><strong>生命体征</strong><span>10个指标　0/10 已确认</span></div>
+            <div class="field-list">
+              <div class="field-header"><span>字段</span><span>OCR识别值</span><span>EDC待录入值</span></div>
+              <div class="field-row">
+                <label class="metric"><input type="checkbox" checked>血压-记录时间</label>
+                <div class="ocr same">2024-11-07 08:25:07</div>
+                <input class="edc-input same" value="2024-11-07 08:25:07">
+              </div>
+              <div class="field-row">
+                <label class="metric"><input type="checkbox" checked>收缩压(mmHg)</label>
+                <div class="ocr diff">129</div>
+                <input class="edc-input diff" value="128">
+              </div>
+              <div class="field-row">
+                <label class="metric"><input type="checkbox" checked>血糖-类型</label>
+                <div class="ocr">--</div>
+                <select class="edc-select"><option selected>请选择</option><option>空腹</option><option>餐后2小时血糖</option><option>随机血糖</option></select>
+              </div>
+              <div class="field-row">
+                <label class="metric"><input type="checkbox" checked>BMI</label>
+                <div class="ocr">--</div>
+                <input class="edc-input" value="23.5" readonly>
+              </div>
+            </div>
+          </article>
+
+          <article class="panel">
+            <div class="panel-head"><button class="toggle">−</button><strong>出院记录</strong><span>出院带药为表格型字段</span></div>
+            <div class="field-list">
+              <div class="field-header"><span>字段</span><span>OCR识别值</span><span>EDC待录入值</span></div>
+              <div class="field-row">
+                <label class="metric"><input type="checkbox" checked>出院日期</label>
+                <div class="ocr same">2024-11-15</div>
+                <input class="edc-input same" value="2024-11-15">
+              </div>
+              <div class="field-row">
+                <label class="metric"><input type="checkbox" checked>出院带药</label>
+                <div class="table-compare">
+                  <div class="subtable">
+                    <h4>OCR识别表</h4>
+                    <table>
+                      <thead><tr><th>药品名称</th><th>剂量</th><th>频次</th><th>天数</th></tr></thead>
+                      <tbody>
+                        <tr><td>阿司匹林肠溶片</td><td>100mg</td><td>每日一次</td><td>30</td></tr>
+                        <tr><td>瑞舒伐他汀钙片</td><td>10mg</td><td>每晚一次</td><td>30</td></tr>
+                      </tbody>
+                    </table>
+                  </div>
+                  <div class="subtable">
+                    <h4>EDC待录入值</h4>
+                    <table>
+                      <thead><tr><th>药品名称</th><th>剂量</th><th>频次</th><th>天数</th></tr></thead>
+                      <tbody>
+                        <tr><td><input value="阿司匹林肠溶片"></td><td><input value="100mg"></td><td><input value="每日一次"></td><td><input value="30"></td></tr>
+                        <tr><td><input value="瑞舒伐他汀钙片"></td><td><input value="10mg"></td><td><input value="每晚一次"></td><td><input value="30"></td></tr>
+                      </tbody>
+                    </table>
+                    <div class="row-tools"><button>新增一行</button><button>从OCR复制</button></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </article>
+        </section>
+      </section>
+
+      <footer class="footer">
+        <button>取消</button>
+        <button class="primary">确认分类并标记SDV</button>
+        <button class="primary">确认并录入EDC</button>
+      </footer>
+    </section>
+  </main>
+</body>
+</html>
