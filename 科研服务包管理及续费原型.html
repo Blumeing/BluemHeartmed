@@ -129,7 +129,7 @@
       "id": 3,
       "route": "package-edit",
       "target": "#scope-field",
-      "title": "服务包信息 · 适用范围",
+      "title": "服务包信息 · 适用范围（已有功能）",
       "sections": [
         {
           "title": "交互规则",
@@ -169,7 +169,7 @@
       "sections": [
         {
           "title": "交互规则",
-          "body": "选择服务包后，项目CRF自动更新。原型即时显示所选包名称、随访与复查节点，并刷新该组CRF矩阵。\n（项目的CRF也可手动变更）\n入院记录、出院记录、手术记录、病史采集、用药史、合并用药及（严重）不良事件默认存在。"
+          "body": "选择服务包后，项目CRF自动更新。原型即时显示所选包名称、随访与复查节点，并刷新该组CRF矩阵。\n（项目的CRF也可手动变更）\n知情同意书、入院记录、出院记录、手术记录、病史采集、用药史、合并用药及（严重）不良事件默认存在。其中知情同意书为基线必选内容，且不可删除"
         }
       ]
     },
@@ -188,28 +188,6 @@
         "x": 819,
         "y": 110
       }
-    },
-    {
-      "id": 8,
-      "route": "workbench",
-      "target": "#source-pc .doctor-fluid-head .userName",
-      "title": "质控／待办 · 到期提醒与续费沟通",
-      "sections": [
-        {
-          "title": "定义与范围",
-          "body": "医生／健管师工作台质控或待办处显示到期提醒、续费沟通。\n增加科研患者的通知提醒\n显示规则：\n1、患者首次续费沟通待办：定时任务每天早上七点执行：患者服务期限剩余15天且没有死亡事件的科研患者，会给患者对应的医生生成首次续费沟通待办。\n2、患者二次续费沟通的待办：定时任务每天早上七点执行：首次续费沟通的结论填写为非“明确拒绝续费”，没有死亡事件且过期时间超过七天的非会员患者，会给对应的健管师生成二次续费沟通待办。"
-        },
-        {
-          "title": "交互规则",
-          "body": "查看服务进入患者服务信息；处理打开续费沟通记录，填写结果和备注后更新待办状态与数量。演示中仅统计当前选中患者的未处理提醒。"
-        }
-      ],
-      "custom": false,
-      "markerOffset": {
-        "x": 0,
-        "y": 0
-      },
-      "anchorRevision": 2
     },
     {
       "id": 9,
@@ -294,10 +272,6 @@
         {
           "title": "加载逻辑",
           "body": "按订单记录展示对应来源；首购等非续费订单在原型中以“—”表示。两种续费来源均有示例订单便于核对。"
-        },
-        {
-          "title": "待确认",
-          "body": "若对照组用户在项目周期内购买了服务包算“新购”/续购？"
         }
       ]
     },
@@ -332,7 +306,7 @@
       "sections": [
         {
           "title": "交互规则",
-          "body": "服务包被科研项目关联后不支持删除，解除关联后进行删除\n点击删除提示“该服务包已被XX科研项目、XX科研项目关联，暂不支持删除”，保留原列表。\n示例第一项已关联“DIAL-HF数字化心衰管理研究”。"
+          "body": "服务包被科研项目关联后不支持删除，解除关联后进行删除\n点击删除提示“该服务包已被XX科研项目、XX科研项目关联，暂不支持删除”，保留原列表。\n示例第一项已关联“DIAL-HF数字化心衰管理研究”。\n删除为已有功能，增加删除拦截及提醒"
         }
       ],
       "markerOffset": {
@@ -390,7 +364,7 @@
       "sections": [
         {
           "title": "页面元素",
-          "body": "在“其他”上方依次新增“受试者退费退出”和“转化为哈瑞特付费会员”。\n新增的两个原因一直默认在页面中（非配置项），和“加入其他项目、受试者失访、其他”保持一致"
+          "body": "在“其他”上方依次新增“受试者退费退出”和“转化为哈瑞特付费会员”。\n新增的两个原因一直默认在页面中（非配置项）"
         },
         {
           "title": "交互规则",
@@ -420,11 +394,11 @@
         },
         {
           "title": "页面元素",
-          "body": "消息主标题为“受试者退费退出”或“转化为哈瑞特付费会员”。\n“受试者退费退出”为从医助PC端点击“退费”导致退出的标题\n“转化为哈瑞特付费会员”为移动端患者自己购买服务包导致的退出标题\n消息包含患者姓名、性别、年龄、医院、提醒时间、“退出事件”标签、“核查中”状态及“前往处理”入口。"
+          "body": "消息主标题为“受试者退费退出”或“转化为哈瑞特付费会员”。\n“受试者退费退出”为从医助PC端点击“退费”导致退出的标题\n“转化为哈瑞特付费会员”为移动端患者自己购买服务包导致的退出标题\n消息包含患者姓名、性别、年龄、医院、提醒时间"
         },
         {
           "title": "交互规则",
-          "body": "支持全部、未读、已读消息筛选。\n点击关闭按钮收起消息中心；\n点击前往处理后该消息标记为已读。\n推送时机：患者购买服务包支付成功/医助端退费审核通过的时间点\n推送角色：该患者的相关所有角色CRC、CRA、CRO、SMO、CRO、PI、PM、DM，“核查通过”按钮根据现有操作权限进行展示"
+          "body": "支持全部、未读、已读消息筛选。\n点击关闭按钮收起消息中心；\n点击前往处理后该消息标记为已读。\n推送时机：患者购买服务包支付成功/医助端退费审核通过的时间点\n推送角色：该患者的相关所有角色CRC、CRA、CRO、SMO、CRO、PI、PM、DM"
         }
       ],
       "markerOffset": {
@@ -436,7 +410,7 @@
       "id": 24,
       "route": "research-workbench",
       "target": ".rs-message-card [data-research=\"process-message\"]",
-      "title": "前往处理 · 定位对应退出记录",
+      "title": "消息 · 定位对应退出记录",
       "custom": false,
       "context": {
         "route": "research-workbench",
@@ -446,41 +420,17 @@
       "sections": [
         {
           "title": "交互规则",
-          "body": "点击某条提醒的“前往处理”，收起消息中心并跳转到该患者的“退出记录”页面。\n患者身份、退出原因和退出时间与所选消息对应；记录状态为“核查中”。\n退出时间为患者购买成功的时间/医助端退费审核通过的时间"
+          "body": "点击某条提醒卡片，收起消息中心并跳转到该患者的“退出记录”页面。\n患者身份、退出原因和退出时间与所选消息对应；记录状态为“已锁定”、审核通过的\n退出时间为患者购买成功的时间/医助端退费审核通过的时间"
         },
         {
           "title": "默认状态",
-          "body": "退出事件同步开关默认关闭，锁定默认开启。\n系统生成的退出记录，上次编辑人默认显示“系统”，并展示对应编辑时间，编辑时间同退出时间。"
+          "body": "退出事件同步开关默认关闭，锁定默认关闭。\n系统生成的退出记录，上次编辑人默认显示“系统”，并展示对应编辑时间，编辑时间同退出时间。"
         }
       ],
       "markerOffset": {
         "x": -35,
         "y": 54
       }
-    },
-    {
-      "id": 27,
-      "route": "patients",
-      "target": "#backend-patient-detail > div:nth-of-type(2) > div:nth-of-type(1) > table:nth-of-type(1) > tbody:nth-of-type(1) > tr:nth-of-type(1) > td:nth-of-type(7)",
-      "title": "变更账号",
-      "custom": true,
-      "context": {
-        "route": "patients",
-        "backendPatient": {
-          "index": 0,
-          "tab": "账号信息"
-        }
-      },
-      "sections": [
-        {
-          "title": "定义与范围",
-          "body": "系统自动发起变更账号，变更记录留存"
-        },
-        {
-          "title": "交互规则",
-          "body": "新手机号由系统自动生成\n是否变更微信号为“是”\n操作人回显“科研系统”"
-        }
-      ]
     },
     {
       "id": 28,
@@ -507,7 +457,7 @@
       }
     }
   ],
-  "savedAt": 1793784866431,
+  "savedAt": 1793860769941,
   "cardOrder": [
     18,
     3,
@@ -1166,7 +1116,7 @@ draftGroups=structuredClone(project().groups);render();updateToggle();
 let researchPatientIndex=0;
 const researchNavBefore=nav;
 nav=function(){researchNavBefore();const isResearch=route==='research-workbench';$('#product').classList.toggle('research-platform',isResearch);for(const container of [$('#sidebar'),$('#platform-directory .source-directory')]){if(!container||container.querySelector('[data-route="research-workbench"]'))continue;const group=document.createElement('div');group.className='nav-group';group.innerHTML=`<div class="nav-caption">科研工作台</div><button class="nav-item ${isResearch?'active':''}" data-route="research-workbench"><i class="fa-solid fa-flask" aria-hidden="true"></i>科研工作台</button>`;const before=Array.from(container.querySelectorAll(':scope > .nav-group')).find(g=>g.querySelector('.nav-caption')?.textContent.includes('医助'));container.insertBefore(group,before||container.querySelector('.nav-foot'));}if(isResearch){$('#sidebar').style.display='';$('#platform-label').textContent='科研工作台'}};
-function researchWorkbenchPage(){const name=researchPatientIndex?'测试3':'患者11';return `<section class="research-screen" id="research-workbench"><header class="rs-head"><div class="rs-brand"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACgAAAAoCAIAAAADnC86AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAOfSURBVFhH1ZjfT9tGAMfzpwSBQEjV1HYEIgQUpkkVAdR2b9PaddrrhNqqQt2kVZPQ2pe2gUrpDwhdadX0odLQVB62aS+DJJDQworSBCeZHScOJQkQJ/4R22ffefISaOpK5AeEiI++D1Hs3Mfn+5G7MxhN/UZTf0O7ZfDCsN0xEyZigiiqB40gimEiZnfMDF4Ybmi3GE39BqOpv6XrzKh1gs4yQJYhhEj/qwMAqSqEEMgynWVGrRMtXWcMDe2WUesEx+cgqoVRD0SI43Oj1gnDF99eyWTZw7HmgQhlsqzhyYtZAGT9xRoDgGyIxNYhhPorNQZCaJAAOLy3vANSVYP+u8PiCIrRR6mIKsUQqUFO9GY4D13IGyYnVTL3VCmmgTKwjLe4As3OQLPT3zz/9oQn+IbJla+uUixC6NhI34ikfiaSI6F3rfP+Jjfmpjml7ImoSjFSVQFCVtGyIcln/yEaNTFbc3ExnAK/8pGNbsx1sDUWACK2pEBC3I0/ISYYWdlpz7y4Yd5/O5JYzvKrTG6VyQVYgZH3mhBLi50Ef/5ZfNAeG5p6n6u/JbOCkr+BV+BFX9T4t++YO9DlwXq8wR4PdvpV6Gl8S19WEaXF00t02x38pDVy+mHMMklZJqkBe/ynP1JZoVAhEaJJarPvVbh3KdS7FOr2hlpd/qY53+W1mL6sIkqLH3vp9vHId78mwpsiRQOKBvEM0MbsTmsiVZUg2hDBuqCFzEk/ht81u9Yu7V9svhu98df2bqPuDUTqJLXVuhA8yuKOcXLkZTLFypmcokVQ5A8fQkZoG8j5JERwk0i0uLH9iqe9dNsdwnyX/PIpddER/9oR/+b5un1hm5MKnUuC6El869wKfm4FP7v879Dr8CfuQNOcb7/iPzF2yB47ZSP77pN996IdY5Hjt/EBe3STKwwnCaKb+IbZEzQvYuZFrGMRMy1g3Z7gw1hKX1YRpcWMCFcowYnzTpyfw3mbK/3pWPTzB9EUW1ipQaSmJNmVZl1p1rkTb4ZL77mUKy3WBgzSSodIVSBaS4qdtnixWHdPPiX/ocsS74KQGt6UOm3rvbYouQ0EgAQZgfIn6CKqFLdZI9d/Tz3yZH7x0jOrzG5HK5+KxWRa6rlHHb+Fn7QSpjHSNE5+9oBaS1S83apMrK3FFTS1SP8wm7z2Usv3s0mbM83XusZ5Ch3t/+Q/V0E14gOhfuK6bWHqtmmr2za1bhvzuh1F1O3wpV7HTf8B65HJqquUT+sAAAAASUVORK5CYII=" alt=""><div><strong>哈瑞特医疗科研平台</strong><small>HEARTMED CLINICAL RESEARCH SYSTEM</small></div></div><button><i class="fa-regular fa-calendar"></i> 项目</button><button class="active"><i class="fa-solid fa-notes-medical"></i> 病例</button><button><i class="fa-regular fa-file-lines"></i> 质疑</button><div class="rs-account"><button aria-label="待处理质疑" class="rs-bell"><i class="fa-regular fa-file-lines"></i><span class="rs-badge">20</span></button><button class="rs-bell" data-research="notifications" aria-label="消息中心" aria-expanded="false" aria-controls="research-message-drawer"><i class="fa-regular fa-bell"></i></button><span><i class="fa-solid fa-circle-user"></i> 王彩文 ⌄</span></div></header><div class="rs-body"><aside class="rs-patients"><div class="rs-search"><select aria-label="搜索类型"><option>筛选号</option><option>患者姓名</option></select><input aria-label="搜索科研患者" placeholder="请输入关键字"></div><div class="rs-filterbar"><span style="color:#326bff">0717... ⌄</span><span>分中心... ⌄</span><span>科研分组 ⌄</span><span>入组来源 ⌄</span></div><div class="rs-cohorts"><button>待入组 <b>(29)</b></button><button class="active">研究中 <b>(2)</b></button><button>已归档 <b>(2)</b></button></div><div class="rs-filters"><select aria-label="管理情况"><option>管理情况</option></select><select aria-label="档案记录状态"><option>档案记录状态</option></select><select aria-label="研究状态"><option>研究状态</option></select></div>${['患者11','测试3'].map((n,i)=>`<div role="button" tabindex="0" aria-label="选择${n}" class="rs-person ${researchPatientIndex===i?'active':''}" data-research="patient" data-index="${i}"><span class="rs-avatar">${i?'测':'患'}</span><div><p>${n} <em> | 女 | 28岁</em></p><small>${i?'2510030005':'2510030001'}</small></div><span class="rs-group-tag">A组别</span></div>`).join('')}<div class="rs-bottom">‹　 <span>1</span>　 ›　 前往　1　页</div></aside><main class="rs-main"><div class="rs-person-head"><span class="avatar">患</span>${name} <span class="rs-muted">|　女　|　28岁</span><button class="btn primary" data-research="archive">归档病例</button></div><nav class="rs-tabs"><button class="active">CRF表</button><button>病例动态</button><button>图片档案</button></nav><div class="rs-record-tabs"><span>主页</span><span>退出记录 2026-09-23 ×</span></div><div class="rs-record-heading"><i class="fa-solid fa-clipboard-list"></i> 退出记录 2026-09-23 <span class="rs-status">核查中</span><i class="fa-solid fa-lock rs-lock"></i><div class="rs-record-actions"><button class="btn primary" data-research="approve">核查通过</button><button class="btn rs-delete" data-research="delete">删除记录</button></div></div><div class="rs-columns"><section class="rs-event"><div class="rs-attachments"><strong>全部附件</strong>无附件</div><div class="rs-event-card"><div class="rs-event-title"><strong>退出事件</strong><input type="checkbox" role="switch" aria-label="退出事件" checked><i class="fa-solid fa-lock rs-lock" aria-label="已锁定" title="已锁定"></i><small>上次编辑人/时间：王彩文/2026-09-23 16:38:29</small></div><p class="rs-event-time">退出时间：2026-09-23 00:00:00</p><div class="rs-reasons"><div>退出原因</div><div>退出</div><div>剔除(剔除)</div><div>其他（退出其他原因）</div></div></div></section><aside class="rs-query"><div class="rs-query-title"><span><i class="fa-solid fa-bars-staggered rs-muted"></i>　记录质疑</span><button>全部 ›</button></div><button class="btn primary" data-research="query">新建质疑</button><div class="rs-query-filters"><select aria-label="质疑类型"><option>质疑类型</option><option>数据核查</option></select><select aria-label="质疑单元"><option>质疑单元</option><option>基本信息</option><option>合并用药</option><option>用药史</option></select><select aria-label="质疑状态"><option>质疑状态</option><option>待审查</option><option>调查中</option></select><button class="btn" data-research="reset-query">重置</button></div><table><thead><tr><th>质疑类型</th><th>质疑记录</th><th>质疑单元/对象</th><th>质疑状态</th><th>操作</th></tr></thead><tbody>${['合并用药','基本信息','用药史'].map((t,i)=>`<tr><td>数据核查</td><td>基线记录</td><td>${t}</td><td class="orange-text">${i===2?'调查中':'待审查'}</td><td><button data-research="handle">处理</button></td></tr>`).join('')}</tbody></table><div class="rs-pagination">共 3 条　 ‹　 <b>1</b>　 ›　 前往　1　页</div></aside></div></main></div><aside class="rs-drawer" id="research-message-drawer" role="dialog" aria-label="消息中心" hidden><div class="rs-drawer-head"><strong>消息中心</strong><button data-research="close-notifications" aria-label="关闭消息中心"><i class="fa-solid fa-xmark"></i></button></div><div class="rs-drawer-tools"><select aria-label="消息类型"><option>全部</option><option>未读消息</option><option>已读消息</option></select><button data-research="refresh"><i class="fa-solid fa-rotate-right"></i> 刷新</button><button data-research="clear">清除</button></div><div class="rs-drawer-empty"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIwAAACCCAIAAAAbqLcZAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAykSURBVHhe7Z2Lcpy4Eob3/d8vlZTrJGuvT2KPxzNcxR12SxIISS0JAZoZZOj6i2LZS7z68nc3klD++veIzcdf8oMjthcHJA/igORBHJA8iAOSB3FA8iAOSB7EAcmDOCB5EAckD8I9pK7r6qaFqqrGoKKsedVNK/93dxzuITVN2zRtXcvjvkCUrvwL7C8cQ+q6jkI6UDkMx5B4QkyVC1R7zoEuIUk2kuTEVftE5RISJQGvdT3eV/gvHdDaFSpnkHgb1YKBFPcHqlnhDNJgmhlyVa6+PCo3kPC7ER73MbnZXx2i+qq03EDCA83eTGvuLdX6npYrOPRz9SVROYBEbcQGWn3PX3XPh79bVvWIkBOcxaBq2w5K/il9DgeQ6PhWeGSp1t5fgyRFefPlDLE41kLqug7+ll+joqwu15gqSbO6buRfcn+xFlJdN2VZO1QYpQwSVZygsqrlX3hPsQpS13VlRQbX0bUoa4kQUxShoqzkn2AfsQrSYKOKjC++rryPYgTx8ArDNC9K+ecAESdpnKTyU29jOaSu+5eMrEON1cisa5Bkedl1phbu99vp99vpa9BaDqlu2qKoHCpJMsjDLJQVbatuAuMkpZy+AKrlkHCaKqqiJEO8+lrqq9Gk0jRvGkUTyCDxtOR/yIdYCKkhNsqJA5xc0zSHoz9LSZpVYr/Om8lrVAsh9TZyJetqNKk4Fvp1SMhHVEsgNU2b56VDpWitjSSxfl1nJr9QLYFUljUe3KIiQ0yuNvf8lXteFM5sJCkg/ToEAxUnaVFOd/aPitmQmqbN8tKhUFbA8XWoa5AEYfLn7QOygai2aazZkKiNMpKm1l/zm9kICqN69xLVPEhN22ZZMajk75HFc3h/axtBBUHy9n6GbKC2kwDnQSrLmjBwoiLLy2uQwHG8g4IgDuMEguF1vlzl//8HxQxIbdsh8nvfjRD2Exy+e+oaxGFkQrURM82ARG3E0pT9PRV8DlclHqIwQjpUGzGTLaS261KUI1S4umZ3r0ZmBWGqRLUFM9lCKqsaIZyjXGlyVeIh6vt1rgncgpmsIHXERr1SB9et2QiKR/VwM1lBKqs6JWnK1TWevyrxENF+/eFmsoKUojxJsVJyNd/zUj6//7vRSgVB/Nj9MNOQqqpmw+3k6ouNmK5BIg/KfWMaEkJFkmTYBC6uCHlmo8s1zvJt16SqbqRktV5wFDYu82aKO8QEJISKOMlcaf3y6/2FUCEPyt3DBKmumzjJEm6UV977aCPdRpd7hgkSyoo4JkMcI3Ll7/mr1XMfCaVpLg/KI0ILqW5aZgIrUSRQw3Mfc12t2oR0/9BCQhmeuXGlOEaPWpVYrCTJ5EF5UKghNU3LDXG2/t5HG0kbxB4YakhZXoYRiqhihO9j7h7P7Y/3uuf8fRB6ZqM4RvKgPC4UkNq2Y0h6rbv30Uab+thGAYnYKHUrOApbVhhtyEYKSF3XkZVKRAbXwTVJPZupu1zjrX0IpYBUlFWcZHilMkyVVyrzc3a/zcU9g4JwW/u5FJBYlGTyO8SLymS4Izzic+8XfM3ycOWPnk6FoYVEg65TBGFCnEGueIF5uNc9H+69s9HDVyWUMQGJRl03KSpYErNU7BuhLaxKKMMKEo2maVFWXIPEUlHsX657+KqEMmZAotG2XZaX1Ctkb4366l2i28iqhDJmQ6LRdV1OUDHf0ITO7n2E1GxgVUIZCyGxKAr8Xb+U6MLQs7fX7axKKGMtJBopyumxTlT4AJrxHC58aBA+S4MeqkGOAqBnN/QfNo9fzpZYw4cxRHhTP/0Qg99HTvbADvsAiYa1+YyJXy6JEhQn/TTV+RLBs72WSR6Fm4UDSHGCN+iqDl0lp2hJ8Hps+CguM7b+a0AJm7i/fABGd/QpgMUCMLz8+M//P/68f8IRX6CqutM0+VpI9KNUBgnD0IKBfiJUIJhBHBjBSWiGk0YPUb2drt++/wrCFA76At3nzLZVkNhnw5KTuLMhx9Pt9Ki48yBEDwkfbgJUEx4SFohHVG+n64+nl19//4Yjvkx34LQcUlGO3wwLTmIeohrPshMOqeE9NOBRJTcJD+rxKMEADwnViIf07fsvj5LeQkg8IY2TFE2E6CEZlb59wBLTHZYdKtI4xCjinPTz+c+3778cJr1bHyi6ENL5chUh4d3Sq+oQ9JC7OhTFeDKeLJ2kPCRfkt4SSPAEizBKSBECHlKjUniIr0NGVCYPYUJ6VOHgpOfXE814viS92ZAgId5JXB0a8GjAaOuQ/t1oVL/9n+wvlz2kwhOlYdyvEUuQvEh68yApCQ1O0tahHtUATIOqb75n1SENKlKHkrEODU5Kw8FJLONRwRFfphslvRmQdISokwYwoofwVX5RNXuIffw81CGdh2AdEhqEsQ4NHgo4J0mQXBWnGyU9W0hSOwchiR7q5xQM6a6vQxAVabtlD2nbbkW6U3iI4OHT3fPriYfksDjdIunZQoJgeAXYSZyHuDaBnK9KwIx4xuQm4zHXIYxHAGPo6EhyG9lQJwUcJL4suS1OzpOeFSSp4YbC6a5vGdQdHfGQcESerg5pUA3AelTTMwt8HVI6CUJylfScz71OQzKUIqYgpE5aWIfEOYWZdUgNRvQQ3nnR6+10oZCksuQ26bktThOQbAhxkCbabm5OQfTQvOmf2XWIJjq6ScYMaZtJzwTJkhCFZDuzYFGHTDMLi+oQ9dCVXN8/+nSnzHhuk54rTlpI5nYOQoJ1aOUM91iHAKqpOkSkQfXxGZohbTDpaSHRs/kshbJc8JDcy0l1SAtm9JCqlzOCAR4KE95DWAG+nj8jBkmX8SinScE/JAhKHtZFoYU0K5q2HVoGsQ5BD1mgAi2DvYfkV1e8q0lEdb5YQZrU0//+kUfhZuEIUtPCjq5vE5Qz3PLrqtzRCXUItgnKmQVVchOdhPcz8U6Cr7T28hSStqPTziyIuxWUs3OsowOvrhIq4iQ1qrSHBJxkKEuT8hISqEOWSw+wlxPnFIzJDYBR1yHiofhC9CE6aWeQpuqQARXBY5xTmGi7dR7iUGFhVFK6W1CWfjy9/Hh6+fvlTR6Fm4U7SBYzC+YZbm7pYbIODcmNaxMMdYh6SOkkHSRK4sfTy9PP15/Pf6j4f/HjM5RH4WbhDpK6DilmFuzrkAKV9cwCfXWFqCRIz6+np5+vVJCEQV5C6pFAD4HkpvTQ2MvJDQKBsbCXGwx0Ha7XmH+ZXSMvIcl1SIFqxs5ThYeEOmTwECaEr2PLMKQ7ggo6aZn8g1Q3jcJD0Elg2pSbWZDAGNqEkY00w823CRfJSdf48xp9XqNdO0k7ww1RDU4CLYN6ZkGxGKFoGdQdHd8yDOlut06qGzm55ZiKuZfTJzdShCAYVXKzqUPUQ5+XfTsJpztlHZrRy0FUQtttrkNmD30e6Y46yT65DXhgkz2nDqmSm+wk5iHmpMueIVEnuatDZlS6GW4jqsNJ2ElgCRyAWbPzdAADPUS/1VWC6XW+UIXnXTtJTHfi9I9ch/SosBQtg8JD7GAPbR0SPERaBopq35CAh8wdHVh6IEjsZhZ6MMqODoMRO7reRtRJ4b4hjXVInlmY2K0AOzrBQ1OolDMLYh3iUe0aEgAzmdw0dQj2cspVIos6RMDgOnT+7D1EBUd8gbyEpJn+GYAZN5Yo5hSgh+bWIT0qOOIL5B+kijnJWIemZrgJHn1y084sDILJjdUhXnDEF8g/SDDdmVCBpDfhIYhKWYfIzIKyDkmo4IgvkH+QKnzWGtytMOUhDkwk1yEw5QN2Kwxg5DkFJRiigGjHkGw8xNchFSrTzlPQy8ltt42H9u0k/OfJCWAMuxUUeDRg4MyCpk0gYMSZBdwmCB4KT+fgdA4+zruFVDdwZkFfh0hHp2wZ5FWi6Y7O+OoqoTqcNAEGuGddHdKDwVRED2EDcdofpLbt2rYrSznd6ecUCKQBmHmVqHePpu2eUYfOY7p7/wjgiC/Q5iBREnXdllWvvGh4ZVml/2BfX4fgtKncJsyb4QYe6sHwcgXp/RzUdevqCyRzaCFhf6h4KJXlFWgZFB2dYoZ7UR3SzXArJ4EkVK4gvX0E0iCUFT0Txj05BSRLMLxQVmrq0HSDMEz5rOnlYB1SeOjWkCRRYPLgLgoZUl3PJkSdBIUys0qmlArZKkHFqNSkGOh8iYMoW69LkMJxgJKGd1m4gXRIJ2l4l4UMiXI6UK2Xw+KkgMTioDVXtNVyxYaFCRIfw3F2tv3eTsSoOAfDhy0kGPTNiZH7wvDY2yHrsG+KBMZySIZgL78Sxa2x5H8qxoBhuDMJQ9wE0hFu44DkQRyQPIgDkgdxQPIgDkgexH+KCC4WyVfK9gAAAABJRU5ErkJggg==" alt="">暂无数据</div></aside></section>`}
+function researchWorkbenchPage(){const name=researchPatientIndex?'测试3':'患者11';return `<section class="research-screen" id="research-workbench"><header class="rs-head"><div class="rs-brand"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACgAAAAoCAIAAAADnC86AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAOfSURBVFhH1ZjfT9tGAMfzpwSBQEjV1HYEIgQUpkkVAdR2b9PaddrrhNqqQt2kVZPQ2pe2gUrpDwhdadX0odLQVB62aS+DJJDQworSBCeZHScOJQkQJ/4R22ffefISaOpK5AeEiI++D1Hs3Mfn+5G7MxhN/UZTf0O7ZfDCsN0xEyZigiiqB40gimEiZnfMDF4Ybmi3GE39BqOpv6XrzKh1gs4yQJYhhEj/qwMAqSqEEMgynWVGrRMtXWcMDe2WUesEx+cgqoVRD0SI43Oj1gnDF99eyWTZw7HmgQhlsqzhyYtZAGT9xRoDgGyIxNYhhPorNQZCaJAAOLy3vANSVYP+u8PiCIrRR6mIKsUQqUFO9GY4D13IGyYnVTL3VCmmgTKwjLe4As3OQLPT3zz/9oQn+IbJla+uUixC6NhI34ikfiaSI6F3rfP+Jjfmpjml7ImoSjFSVQFCVtGyIcln/yEaNTFbc3ExnAK/8pGNbsx1sDUWACK2pEBC3I0/ISYYWdlpz7y4Yd5/O5JYzvKrTG6VyQVYgZH3mhBLi50Ef/5ZfNAeG5p6n6u/JbOCkr+BV+BFX9T4t++YO9DlwXq8wR4PdvpV6Gl8S19WEaXF00t02x38pDVy+mHMMklZJqkBe/ynP1JZoVAhEaJJarPvVbh3KdS7FOr2hlpd/qY53+W1mL6sIkqLH3vp9vHId78mwpsiRQOKBvEM0MbsTmsiVZUg2hDBuqCFzEk/ht81u9Yu7V9svhu98df2bqPuDUTqJLXVuhA8yuKOcXLkZTLFypmcokVQ5A8fQkZoG8j5JERwk0i0uLH9iqe9dNsdwnyX/PIpddER/9oR/+b5un1hm5MKnUuC6El869wKfm4FP7v879Dr8CfuQNOcb7/iPzF2yB47ZSP77pN996IdY5Hjt/EBe3STKwwnCaKb+IbZEzQvYuZFrGMRMy1g3Z7gw1hKX1YRpcWMCFcowYnzTpyfw3mbK/3pWPTzB9EUW1ipQaSmJNmVZl1p1rkTb4ZL77mUKy3WBgzSSodIVSBaS4qdtnixWHdPPiX/ocsS74KQGt6UOm3rvbYouQ0EgAQZgfIn6CKqFLdZI9d/Tz3yZH7x0jOrzG5HK5+KxWRa6rlHHb+Fn7QSpjHSNE5+9oBaS1S83apMrK3FFTS1SP8wm7z2Usv3s0mbM83XusZ5Ch3t/+Q/V0E14gOhfuK6bWHqtmmr2za1bhvzuh1F1O3wpV7HTf8B65HJqquUT+sAAAAASUVORK5CYII=" alt=""><div><strong>哈瑞特医疗科研平台</strong><small>HEARTMED CLINICAL RESEARCH SYSTEM</small></div></div><button><i class="fa-regular fa-calendar"></i> 项目</button><button class="active"><i class="fa-solid fa-notes-medical"></i> 病例</button><button><i class="fa-regular fa-file-lines"></i> 质疑</button><div class="rs-account"><button aria-label="待处理质疑" class="rs-bell"><i class="fa-regular fa-file-lines"></i><span class="rs-badge">20</span></button><button class="rs-bell" data-research="notifications" aria-label="消息中心" aria-expanded="false" aria-controls="research-message-drawer"><i class="fa-regular fa-bell"></i></button><span><i class="fa-solid fa-circle-user"></i> 王彩文 ⌄</span></div></header><div class="rs-body"><aside class="rs-patients"><div class="rs-search"><select aria-label="搜索类型"><option>筛选号</option><option>患者姓名</option></select><input aria-label="搜索科研患者" placeholder="请输入关键字"></div><div class="rs-filterbar"><span style="color:#326bff">0717... ⌄</span><span>分中心... ⌄</span><span>科研分组 ⌄</span><span>入组来源 ⌄</span></div><div class="rs-cohorts"><button>待入组 <b>(29)</b></button><button class="active">研究中 <b>(2)</b></button><button>已归档 <b>(2)</b></button></div><div class="rs-filters"><select aria-label="管理情况"><option>管理情况</option></select><select aria-label="档案记录状态"><option>档案记录状态</option></select><select aria-label="研究状态"><option>研究状态</option></select></div>${['患者11','测试3'].map((n,i)=>`<div role="button" tabindex="0" aria-label="选择${n}" class="rs-person ${researchPatientIndex===i?'active':''}" data-research="patient" data-index="${i}"><span class="rs-avatar">${i?'测':'患'}</span><div><p>${n} <em> | 女 | 28岁</em></p><small>${i?'2510030005':'2510030001'}</small></div><span class="rs-group-tag">A组别</span></div>`).join('')}<div class="rs-bottom">‹　 <span>1</span>　 ›　 前往　1　页</div></aside><main class="rs-main"><div class="rs-person-head"><span class="avatar">患</span>${name} <span class="rs-muted">|　女　|　28岁</span><button class="btn primary" data-research="archive">归档病例</button></div><nav class="rs-tabs"><button class="active">CRF表</button><button>病例动态</button><button>图片档案</button></nav><div class="rs-record-tabs"><span>主页</span><span>退出记录 2026-09-23 ×</span></div><div class="rs-record-heading"><i class="fa-solid fa-clipboard-list"></i> 退出记录 2026-09-23 <span class="rs-status">已锁定</span><i class="fa-solid fa-lock rs-lock"></i></div><div class="rs-columns"><section class="rs-event"><div class="rs-attachments"><strong>全部附件</strong>无附件</div><div class="rs-event-card"><div class="rs-event-title"><strong>退出事件</strong><input type="checkbox" role="switch" aria-label="退出事件" checked><i class="fa-solid fa-lock rs-lock" aria-label="已锁定" title="已锁定"></i><small>上次编辑人/时间：王彩文/2026-09-23 16:38:29</small></div><p class="rs-event-time">退出时间：2026-09-23 00:00:00</p><div class="rs-reasons"><div>退出原因</div><div>退出</div><div>剔除(剔除)</div><div>其他（退出其他原因）</div></div></div></section><aside class="rs-query"><div class="rs-query-title"><span><i class="fa-solid fa-bars-staggered rs-muted"></i>　记录质疑</span><button>全部 ›</button></div><button class="btn primary" data-research="query">新建质疑</button><div class="rs-query-filters"><select aria-label="质疑类型"><option>质疑类型</option><option>数据核查</option></select><select aria-label="质疑单元"><option>质疑单元</option><option>基本信息</option><option>合并用药</option><option>用药史</option></select><select aria-label="质疑状态"><option>质疑状态</option><option>待审查</option><option>调查中</option></select><button class="btn" data-research="reset-query">重置</button></div><table><thead><tr><th>质疑类型</th><th>质疑记录</th><th>质疑单元/对象</th><th>质疑状态</th><th>操作</th></tr></thead><tbody>${['合并用药','基本信息','用药史'].map((t,i)=>`<tr><td>数据核查</td><td>基线记录</td><td>${t}</td><td class="orange-text">${i===2?'调查中':'待审查'}</td><td><button data-research="handle">处理</button></td></tr>`).join('')}</tbody></table><div class="rs-pagination">共 3 条　 ‹　 <b>1</b>　 ›　 前往　1　页</div></aside></div></main></div><aside class="rs-drawer" id="research-message-drawer" role="dialog" aria-label="消息中心" hidden><div class="rs-drawer-head"><strong>消息中心</strong><button data-research="close-notifications" aria-label="关闭消息中心"><i class="fa-solid fa-xmark"></i></button></div><div class="rs-drawer-tools"><select aria-label="消息类型"><option>全部</option><option>未读消息</option><option>已读消息</option></select><button data-research="refresh"><i class="fa-solid fa-rotate-right"></i> 刷新</button><button data-research="clear">清除</button></div><div class="rs-drawer-empty"><img src="data:image/png;base64,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" alt="">暂无数据</div></aside></section>`}
 const researchRenderBefore=render;
 render=function(){if(route!=='research-workbench'){researchRenderBefore();return}$('#page').innerHTML=researchWorkbenchPage();nav();renderNotes();requestAnimationFrame(drawLine)};
 function closeResearchMessages(){const drawer=$('#research-message-drawer');if(drawer){drawer.hidden=true;$('#research-workbench [data-research="notifications"]').setAttribute('aria-expanded','false');$('#research-workbench [data-research="notifications"]').focus()}}
@@ -1202,7 +1152,7 @@ const researchMessages=[
 {id:'research-exit-003',title:'受试者退费退出',name:'王五',gender:'男',age:76,hospital:'郑州大学第一医院',patientId:'2510030008',time:'今天 18:21',date:'2026-11-04',read:false}
 ];
 let researchActiveMessage=null;
-function researchMessageList(filter='全部'){const items=researchMessages.filter(m=>filter==='未读消息'?!m.read:filter==='已读消息'?m.read:true);return items.length?`<div class="rs-message-list">${items.map(m=>`<article class="rs-message-card ${m.read?'is-read':''}"><i class="fa-solid fa-user-plus rs-message-icon" aria-hidden="true"></i><div><h4>${m.title}</h4><p>${m.name}、${m.gender}、${m.age}岁、${m.hospital}</p><div class="rs-message-meta"><span class="rs-message-type">退出事件</span><span class="rs-message-status">核查中</span></div></div><div class="rs-message-end"><time>${m.time}</time><button data-research="process-message" data-message-id="${m.id}" aria-label="前往处理${m.name}的${m.title}">前往处理&gt;&gt;</button></div></article>`).join('')}</div>`:'<div class="rs-drawer-empty">暂无数据</div>'}
+function researchMessageList(filter='全部'){const items=researchMessages.filter(m=>filter==='未读消息'?!m.read:filter==='已读消息'?m.read:true);return items.length?`<div class="rs-message-list">${items.map(m=>`<article class="rs-message-card ${m.read?'is-read':''}"><i class="fa-solid fa-user-plus rs-message-icon" aria-hidden="true"></i><div><h4>${m.title}</h4><p>${m.name}、${m.gender}、${m.age}岁、${m.hospital}</p></div><div class="rs-message-end"><time>${m.time}</time><button data-research="process-message" data-message-id="${m.id}" aria-label="前往处理${m.name}的${m.title}">前往处理&gt;&gt;</button></div></article>`).join('')}</div>`:'<div class="rs-drawer-empty">暂无数据</div>'}
 const researchPageBeforeMessages=researchWorkbenchPage;
 researchWorkbenchPage=function(){let html=researchPageBeforeMessages();const start=html.indexOf('<div class="rs-drawer-empty">');const end=html.indexOf('</div></aside></section>',start);if(start>=0&&end>=0)html=html.slice(0,start)+researchMessageList()+html.slice(end+6);html=html.replace('上次编辑人/时间：王彩文/','上次编辑人/时间：系统/');const m=researchActiveMessage;if(m){html=html.replace(/<div class="rs-person-head">[\s\S]*?<\/div>/,`<div class="rs-person-head"><span class="avatar">${m.name.slice(0,1)}</span>${m.name} <span class="rs-muted">|　${m.gender}　|　${m.age}岁　|　${m.hospital}</span><button class="btn primary" data-research="archive">归档病例</button></div>`);html=html.replace('<div class="rs-cohorts">',`<div class="rs-message-patient">${m.name}　${m.gender}　${m.age}岁<small>${m.patientId}　A组别</small></div><div class="rs-cohorts">`).replaceAll('rs-person active','rs-person');if(researchView==='record'){html=html.replaceAll('2026-09-23',m.date).replace('16:38:29','18:21:00').replace('00:00:00','18:21:00').replace('<div class="rs-reasons"><div>退出原因</div><div>退出</div><div>剔除(剔除)</div><div>其他（退出其他原因）</div></div>',`<div class="rs-reasons"><div>退出原因</div><div>${m.title}</div></div>`)}}return html};
 document.addEventListener('click',e=>{const el=e.target.closest('[data-research]');if(!el)return;const action=el.dataset.research;if(action==='process-message'){e.preventDefault();e.stopImmediatePropagation();const m=researchMessages.find(x=>x.id===el.dataset.messageId);if(!m)return;m.read=true;researchActiveMessage=m;researchView='record';render();$('#workspace').scrollTop=0}else if(action==='patient'){researchActiveMessage=null}else if(action==='clear'&&el.closest('#research-message-drawer')){e.preventDefault();e.stopImmediatePropagation();researchMessages.length=0;const list=$('#research-message-drawer .rs-message-list')||$('#research-message-drawer .rs-drawer-empty');if(list)list.outerHTML=researchMessageList();toast('消息已清除')}},true);
@@ -1237,5 +1187,18 @@ function showAccountChange(){const p=backendPatientRows[backendPatientSelected]|
 document.addEventListener('click',e=>{const el=e.target.closest('[data-account-action]');if(!el)return;e.preventDefault();if(el.dataset.accountAction==='open')showAccountChange();else if(el.dataset.accountAction==='close')$('#account-change-layer')?.remove()},true);
 document.addEventListener('submit',e=>{if(e.target.id!=='account-change-form')return;e.preventDefault();e.stopImmediatePropagation();const f=new FormData(e.target),p=backendPatientRows[backendPatientSelected]||backendPatientRows[0],previous=p.phone,next=String(f.get('新手机号'));accountHistory(p,backendPatientSelected).unshift({content:f.get('变更微信号')==='是'?'变更手机号及微信':'变更手机号',before:previous,after:next,operator:'科研系统',time:now()});p.phone=next;$('#account-change-layer')?.remove();updateBackendPatientDetail();toast('账号变更已保存')},true);
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&$('#account-change-layer')){e.preventDefault();e.stopImmediatePropagation();$('#account-change-layer').remove()}},true);
+</script>
+<script>
+// Keep restored note drafts consistent with the updated record and message display.
+for(const n of noteData.notes){if(n.id===23)for(const section of n.sections){section.body=section.body.replace('、“退出事件”标签、“核查中”状态及','及').replace('，“核查通过”按钮根据现有操作权限进行展示','')}if(n.id===24)for(const section of n.sections)section.body=section.body.replace('记录状态为“核查中”','记录状态为“已锁定”')}
+// Restore the saved account-change annotation when an older browser draft is loaded.
+const accountNoteSeed=originalNotes.notes.find(n=>n.title==='变更账号');
+if(accountNoteSeed&&!noteData.notes.some(n=>n.title==='变更账号')){const n=structuredClone(accountNoteSeed);if(noteData.notes.some(x=>x.id===n.id))n.id=Math.max(noteData.nextId||1,...noteData.notes.map(x=>x.id+1));noteData.notes.push(n);noteData.nextId=Math.max(noteData.nextId||1,n.id+1)}
+const accountAnnotation=noteData.notes.find(n=>n.title==='变更账号');
+if(accountAnnotation){accountAnnotation.target='#account-change-layer .account-history';accountAnnotation.custom=false;accountAnnotation.context={...(accountAnnotation.context||{}),route:'patients',backendPatient:{index:0,tab:'账号信息'},accountChange:true}}
+function attachAccountChangeNote(){if(!accountAnnotation)return;const target=$('#account-change-layer .account-history');if(!target||$(`#account-change-layer [data-note="${accountAnnotation.id}"]`))return;target.insertAdjacentHTML('beforebegin',mark(accountAnnotation.id));syncAnnotationNumbers()}
+const accountPreviousShow=showAccountChange;showAccountChange=function(){accountPreviousShow();attachAccountChangeNote()};
+const accountPreviousReveal=revealNote;revealNote=function(n){if(!n?.context?.accountChange){accountPreviousReveal(n);return}closeModal();route='patients';nav();render();openBackendPatientDetail(n.context.backendPatient?.index??0);backendPatientTab='账号信息';updateBackendPatientDetail();showAccountChange();noteTarget(n)?.scrollIntoView({behavior:'smooth',block:'center'});requestAnimationFrame(drawLine)};
+renderNotes();
 </script>
 </body></html>
