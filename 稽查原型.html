@@ -84,6 +84,7 @@ body.audit-history-annotation #auditAnnotationToggle{z-index:23}
 body.audit-history-annotation #detailMask{right:var(--audit-history-panel-width,0px)}
 @media(max-width:768px){body.audit-history-annotation #detailMask{right:0;bottom:var(--audit-history-panel-height,0px)}}
 .audit-annotation-highlight{outline:2px solid #d97706!important;outline-offset:-2px}
+#product{scroll-padding-block-start:78px}
 .audit-annotation-pick{outline:2px dashed #d97706!important;outline-offset:-2px}
 #auditAnnotationToggle{position:fixed;right:24px;bottom:24px;z-index:18;width:56px;height:56px;padding:0;border-radius:50%;background:#fef3c7;color:#92400e;border:1px solid #f59e0b;box-shadow:0 3px 10px #92400e33}
 #auditAnnotationToggle:hover{background:#fde68a}
@@ -219,9 +220,9 @@ function openRecord(r){if(r.object==='档案 / 基础信息')return openArchive(
 function openArchive(subject=$('project').value==='郑目'?'040001':'200101'){
  const key=$('project').value+'|'+subject;const record=archives[key]||(archives[key]={address:'演示市示例路 12 号',phone:'13800000000'});editingArchive=true;
  modal('<h2>档案修改 · '+esc(subject)+'</h2><div class="archive-tab">档案 · 基础信息</div><p class="muted">修改数据后，请填写修改原因再保存。以下为本地模拟，不会提交到现有平台。</p><div id="archiveContent"></div>');
- function show(){ $('archiveContent').innerHTML='<h3>基础信息</h3><form id="archiveForm"><label class="archive-field">联系地址<input id="archiveAddress" maxlength="200" value="'+esc(record.address)+'" '+(editingArchive?'':'disabled')+'></label><label class="archive-field">联系方式<input id="archivePhone" maxlength="30" value="'+esc(record.phone)+'" '+(editingArchive?'':'disabled')+'></label>'+(editingArchive?'<label class="archive-field"><span>修改原因 <em>*</em></span><textarea id="archiveReason" maxlength="500" placeholder="例如：核对原始资料后更正联系地址" aria-label="修改原因（必填）" required></textarea></label><div id="archiveError" role="alert" style="color:#d14444"></div>':'')+'<div class="modalfoot"><button type="button" id="cancelArchive">'+(editingArchive?'取消修改':'关闭')+'</button><button class="primary" type="'+(editingArchive?'submit':'button')+'" id="editArchive">'+(editingArchive?'保存':'编辑')+'</button></div></form>';
+ function show(){ $('archiveContent').innerHTML='<h3>基础信息</h3><form id="archiveForm"><label class="archive-field">联系地址<input id="archiveAddress" maxlength="200" value="'+esc(record.address)+'" '+(editingArchive?'':'disabled')+'></label><label class="archive-field">联系方式<input id="archivePhone" maxlength="30" value="'+esc(record.phone)+'" '+(editingArchive?'':'disabled')+'></label>'+(editingArchive?'<label class="archive-field"><span>修改原因 <em>*</em></span><textarea id="archiveReason" maxlength="200" placeholder="例如：核对原始资料后更正联系地址" aria-label="修改原因（必填）" required></textarea></label><div id="archiveError" role="alert" style="color:#d14444"></div>':'')+'<div class="modalfoot"><button type="button" id="cancelArchive">'+(editingArchive?'取消修改':'关闭')+'</button><button class="primary" type="'+(editingArchive?'submit':'button')+'" id="editArchive">'+(editingArchive?'保存':'编辑')+'</button></div></form>';
  $('cancelArchive').onclick=()=>{if(editingArchive){editingArchive=false;show()}else $('modalMask').classList.remove('open')};if(!editingArchive)$('editArchive').onclick=()=>{editingArchive=true;show()};
- $('archiveForm').onsubmit=e=>{e.preventDefault();const reason=$('archiveReason').value.trim(),address=$('archiveAddress').value.trim(),phone=$('archivePhone').value.trim();if(!reason){$('archiveError').textContent='请填写修改原因，不能仅输入空格';return}const changes=[];if(address!==record.address)changes.push({field:'联系地址',before:record.address||'原来未填写',after:address||'修改后清空'});if(phone!==record.phone)changes.push({field:'联系方式',before:record.phone||'原来未填写',after:phone||'修改后清空'});if(!changes.length){$('archiveError').textContent='数据未发生变化，无需保存';return}
+ $('archiveForm').onsubmit=e=>{e.preventDefault();const reason=$('archiveReason').value.trim(),address=$('archiveAddress').value.trim(),phone=$('archivePhone').value.trim();if(!reason||$('archiveReason').value.length>200){$('archiveError').textContent=reason?'修改原因不能超过 200 字符。':'请填写修改原因，不能仅输入空格';return}const changes=[];if(address!==record.address)changes.push({field:'联系地址',before:record.address||'原来未填写',after:address||'修改后清空'});if(phone!==record.phone)changes.push({field:'联系方式',before:record.phone||'原来未填写',after:phone||'修改后清空'});if(!changes.length){$('archiveError').textContent='数据未发生变化，无需保存';return}
  const log={id:'AUD-'+Date.now(),project:$('project').value,center:'模拟分中心一',subject,module:'CRF',type:'修改',object:'档案 / 基础信息',objectId:key+'|archive',changes,time:timestamp(),person:'当前用户（演示）',role:'CRC',reason,source:'科研工作台'};Object.assign(record,{address,phone});data.unshift(log);$('modalMask').classList.remove('open');$('detailMask').classList.remove('open');active='数据稽查';syncTypes();$('filters').reset();render();toast('档案修改已保存，已生成含修改原因的稽查日志');detail(log.id)};
  }show();
 }
@@ -242,9 +243,9 @@ caseWorkspace.innerHTML=`<aside class="case-sidebar"><div class="case-search">�
 $('editCaseInfo').onclick=()=>openArchive(subject)}
 openArchive=function(subject=caseSubject){caseSubject=subject;const record=caseRecord(subject);editingArchive=true;
 const field=(f)=>{const [key,label,type]=f;return '<label class="case-edit-field"><span><em>*</em> '+label+'</span>'+(type==='select'?'<select id="case-sex"><option'+(record.sex==='男'?' selected':'')+'>男</option><option'+(record.sex==='女'?' selected':'')+'>女</option></select>':'<input required id="case-'+key+'" type="'+type+'" '+(type==='number'?'min="0.01" step="0.01"':'maxlength="200"')+' value="'+esc(record[key]||'')+'">')+'</label>'};
-modal('<div class="case-editor"><div class="case-section-title"><h2>编辑病例</h2><button class="link" data-close="modalMask" aria-label="关闭编辑病例">✕</button></div><form id="caseEditForm"><div class="case-editor-scroll"><h3>基础信息</h3><div class="case-edit-grid">'+caseFields.slice(0,7).map(field).join('')+'</div><h3>联系人（至少一位）</h3><div class="case-edit-grid">'+caseFields.slice(7).map(field).join('')+'</div><h3>知情同意书</h3><div class="case-file">同意书样例.jpg <span class="muted">附件展示</span></div><h3>基线资料上传</h3><div class="case-file">基线资料样例.jpg <span class="muted">附件展示</span></div></div><div class="case-reason-block"><label for="archiveReason"><em>*</em> 修改原因</label><textarea id="archiveReason" required maxlength="500" placeholder="请说明本次修改原因，例如：核对原始资料后更正邮寄地址"></textarea><div id="archiveError" role="alert"></div></div><div class="modalfoot"><button type="button" id="cancelCaseEdit">取消</button><button type="submit" class="primary">确定</button></div></form></div>');
+modal('<div class="case-editor"><div class="case-section-title"><h2>编辑病例</h2><button class="link" data-close="modalMask" aria-label="关闭编辑病例">✕</button></div><form id="caseEditForm"><div class="case-editor-scroll"><h3>基础信息</h3><div class="case-edit-grid">'+caseFields.slice(0,7).map(field).join('')+'</div><h3>联系人（至少一位）</h3><div class="case-edit-grid">'+caseFields.slice(7).map(field).join('')+'</div><h3>知情同意书</h3><div class="case-file">同意书样例.jpg <span class="muted">附件展示</span></div><h3>基线资料上传</h3><div class="case-file">基线资料样例.jpg <span class="muted">附件展示</span></div></div><div class="case-reason-block"><label for="archiveReason"><em>*</em> 修改原因</label><textarea id="archiveReason" required maxlength="200" placeholder="请说明本次修改原因，例如：核对原始资料后更正邮寄地址"></textarea><div id="archiveError" role="alert"></div></div><div class="modalfoot"><button type="button" id="cancelCaseEdit">取消</button><button type="submit" class="primary">确定</button></div></form></div>');
 $('modal').classList.add('case-edit-modal');$('cancelCaseEdit').onclick=()=>{$('modalMask').classList.remove('open')};
-$('caseEditForm').onsubmit=e=>{e.preventDefault();const reason=$('archiveReason').value.trim();if(!reason){$('archiveError').textContent='请填写修改原因，不能仅输入空格';$('archiveReason').focus();return}const values=Object.fromEntries(caseFields.map(([k])=>[k,$('case-'+k).value.trim()]));if(Object.values(values).some(v=>!v)){$('archiveError').textContent='请完整填写必填信息';return}const changes=caseFields.filter(([k])=>String(record[k]||'')!==values[k]).map(([k,label])=>({field:label,before:String(record[k]||'原来未填写'),after:values[k]}));if(!changes.length){$('archiveError').textContent='数据未发生变化，无需保存';return}Object.assign(record,values);data.unshift({id:'AUD-'+Date.now(),project:$('project').value,center:'模拟分中心一',subject,module:'CRF',type:'修改',object:'档案 / 基础信息',objectId:$('project').value+'|'+subject+'|archive',changes,time:timestamp(),person:'当前用户（模拟）',role:'CRC',reason,source:'科研工作台'});$('modalMask').classList.remove('open');showCases(subject);render();toast('修改已保存，原因已同步至稽查日志')};
+$('caseEditForm').onsubmit=e=>{e.preventDefault();const reason=$('archiveReason').value.trim();if(!reason||$('archiveReason').value.length>200){$('archiveError').textContent=reason?'修改原因不能超过 200 字符。':'请填写修改原因，不能仅输入空格';$('archiveReason').focus();return}const values=Object.fromEntries(caseFields.map(([k])=>[k,$('case-'+k).value.trim()]));if(Object.values(values).some(v=>!v)){$('archiveError').textContent='请完整填写必填信息';return}const changes=caseFields.filter(([k])=>String(record[k]||'')!==values[k]).map(([k,label])=>({field:label,before:String(record[k]||'原来未填写'),after:values[k]}));if(!changes.length){$('archiveError').textContent='数据未发生变化，无需保存';return}Object.assign(record,values);data.unshift({id:'AUD-'+Date.now(),project:$('project').value,center:'模拟分中心一',subject,module:'CRF',type:'修改',object:'档案 / 基础信息',objectId:$('project').value+'|'+subject+'|archive',changes,time:timestamp(),person:'当前用户（模拟）',role:'CRC',reason,source:'科研工作台'});$('modalMask').classList.remove('open');showCases(subject);render();toast('修改已保存，原因已同步至稽查日志')};
 };
 const priorModal=modal;modal=function(html){$('modal').classList.remove('case-edit-modal');priorModal(html)};
 document.querySelector('[data-nav="病例"]').onclick=()=>showCases($('project').value==='郑目'?'040001':'200101');
@@ -275,19 +276,19 @@ function crfChangeSet(schema,record,values){return schema.flatMap((f,i)=>String(
 const caseHomeOriginal=showCases;
 showCases=function(subject=caseSubject){editingUnit=null;caseHomeOriginal(subject);$('editCaseInfo').remove();const visits=caseWorkspace.querySelectorAll('.case-visits>div');visits.forEach((el,i)=>{if(i===0){el.innerHTML='<button class="link" id="baselineVisit">基线记录</button><p>2025-05-27　<span class="crf-status">监查中</span></p>';$('baselineVisit').onclick=()=>showBaseline('入院记录')}});
 const section=document.createElement('section');section.className='case-section';section.innerHTML='<div class="case-section-title"><h3>方案监查</h3><span class="muted">● 已锁定　● 开始　○ 未开始　▣ 有记录</span></div><div class="crf-matrix-wrap"><table class="crf-matrix"><thead><tr><th>单元名称</th>'+['基线记录','第一次访视','第二次访视','第三次访视','第四次访视','终点记录'].map(x=>'<th>'+x+'</th>').join('')+'</tr></thead><tbody>'+baselineUnits.map((name,i)=>'<tr><td>'+name+'</td><td><button class="crf-record-icon" data-baseline="'+i+'" aria-label="打开基线记录：'+name+'" title="打开基线记录 / '+name+'">▣</button></td>'+Array.from({length:5},()=>'<td><span class="crf-empty-cell">○</span></td>').join('')+'</tr>').join('')+'</tbody></table></div>';caseWorkspace.querySelector('.case-main').append(section);section.querySelectorAll('[data-baseline]').forEach(b=>b.onclick=()=>showBaseline(baselineUnits[+b.dataset.baseline]));};
-function showBaseline(name='入院记录'){
+function showBaseline(name='入院记录', scrollBehavior='smooth'){
  if(caseWorkspace.hidden)showCases(caseSubject);const main=caseWorkspace.querySelector('.case-main');
  main.innerHTML='<div class="case-person">'+esc(caseRecord(caseSubject).name)+' <span class="muted">档案编号 '+esc(caseSubject)+'</span></div><div class="case-tabs"><strong>CRF表</strong><span>病例动态</span><span>图片档案</span></div><div class="crf-visit-tabs"><button id="crfHome">主页</button><strong>基线记录 2025-05-27 <button class="link" id="closeBaseline" aria-label="关闭基线记录">×</button></strong></div><div class="crf-visit-heading">基线记录 2025-05-27 <span class="crf-status">监查中</span></div><div class="crf-unit-nav">'+baselineUnits.map((n,i)=>'<button data-unit="'+i+'">'+n+'</button>').join('')+'</div><div class="crf-attachments"><b>全部附件</b><span class="crf-file-thumb">▧<br>血脂全套、肝功能</span><span class="crf-file-thumb">▧<br>肝功能</span><span class="crf-file-thumb">▧<br>入院记录等</span><span class="muted">附件样例</span></div><div class="crf-body"><div class="crf-units" id="crfUnits"></div><aside class="crf-queries"><h3>记录质疑</h3><div class="crf-query-card"><span class="tag">数据核查</span><p>基线记录 / 入院记录</p><p>待接收　责任人：模拟CRC</p></div><div class="crf-query-card"><span class="tag">方案监查</span><p>基线记录 / 检查单元</p><p>已关闭</p></div></aside></div>';
  $('crfHome').onclick=$('closeBaseline').onclick=()=>{if(editingUnit!==null){toast('请先保存或取消当前单元修改');return}showCases(caseSubject)};
  baselineUnits.forEach((n,i)=>{const a=document.createElement('article');a.className='crf-unit';a.id='crfUnit'+i;$('crfUnits').append(a);drawUnit(i)});
- main.querySelectorAll('[data-unit]').forEach(b=>b.onclick=()=>focusUnit(+b.dataset.unit));focusUnit(Math.max(0,baselineUnits.indexOf(name)));
+ main.querySelectorAll('[data-unit]').forEach(b=>b.onclick=()=>focusUnit(+b.dataset.unit));focusUnit(Math.max(0,baselineUnits.indexOf(name)),scrollBehavior);
 }
-function focusUnit(index){caseWorkspace.querySelectorAll('[data-unit]').forEach(b=>b.classList.toggle('active',+b.dataset.unit===index));$('crfUnit'+index).scrollIntoView({block:'start',behavior:'smooth'})}
+function focusUnit(index,behavior='smooth'){caseWorkspace.querySelectorAll('[data-unit]').forEach(b=>b.classList.toggle('active',+b.dataset.unit===index));$('crfUnit'+index).scrollIntoView({block:'start',behavior})}
 function drawUnit(index){const name=baselineUnits[index],record=crfRecord(name),schema=baselineSchema[name],editing=editingUnit===index,el=$('crfUnit'+index);
-el.innerHTML='<div class="crf-unit-heading"><h3>'+name+'</h3>'+(editing?'':'<span class="muted">上次编辑人/时间：'+esc(record.person)+' / '+esc(record.time)+'</span>'+(schema?'<button class="link" data-crf-edit="'+index+'">✎ 编辑</button>':''))+'</div>'+(schema?(editing?'<form id="crfForm'+index+'">':'<div class="crf-read-fields">')+'<div class="crf-attachment-row">附件：<span class="muted">'+(['入院记录','手术记录','出院记录'].includes(name)?'2个附件（模拟）':'无附件')+'</span></div>'+schema.map((f,i)=>{const id='crfField'+index+'_'+i,v=record.values[i];return '<div class="crf-field"><label for="'+id+'">'+f[0]+'：</label>'+(editing?(f[1]==='textarea'?'<textarea id="'+id+'" maxlength="2000">'+esc(v)+'</textarea>':f[1]==='radio'?'<div class="crf-radios">'+['首次入院','计划入院','其他非不良事件','不良事件'].map(opt=>'<label><input type="radio" name="'+id+'" value="'+opt+'" '+(v===opt?'checked':'')+'>'+opt+'</label>').join('')+'</div>':'<input id="'+id+'" type="'+f[1]+'" '+(f[1]==='number'?'min="0" step="any"':'')+' value="'+esc(v)+'">'):'<span>'+esc(v||'—')+'</span>')+'</div>'}).join('')+(editing?'<div class="crf-change-reason"><label for="crfReason'+index+'"><em>*</em> 修改原因</label><textarea id="crfReason'+index+'" required maxlength="500" placeholder="请说明本次修改原因，例如：核对原始记录后更正录入内容"></textarea><div class="crf-error" id="crfError'+index+'" role="alert"></div></div><div class="crf-actions"><button type="button" data-crf-cancel>取消</button><button type="submit" class="primary">保存</button></div></form>':'</div>'):'<div class="crf-attachment-row">附件：无附件</div><p class="muted">该单元字段尚未逐项核对，保留平台单元位置；本轮编辑流程可在入院记录等已配置单元体验。</p>');
+el.innerHTML='<div class="crf-unit-heading"><h3>'+name+'</h3>'+(editing?'':'<span class="muted">上次编辑人/时间：'+esc(record.person)+' / '+esc(record.time)+'</span>'+(schema?'<button class="link" data-crf-edit="'+index+'">✎ 编辑</button>':''))+'</div>'+(schema?(editing?'<form id="crfForm'+index+'">':'<div class="crf-read-fields">')+'<div class="crf-attachment-row">附件：<span class="muted">'+(['入院记录','手术记录','出院记录'].includes(name)?'2个附件（模拟）':'无附件')+'</span></div>'+schema.map((f,i)=>{const id='crfField'+index+'_'+i,v=record.values[i];return '<div class="crf-field"><label for="'+id+'">'+f[0]+'：</label>'+(editing?(f[1]==='textarea'?'<textarea id="'+id+'" maxlength="2000">'+esc(v)+'</textarea>':f[1]==='radio'?'<div class="crf-radios">'+['首次入院','计划入院','其他非不良事件','不良事件'].map(opt=>'<label><input type="radio" name="'+id+'" value="'+opt+'" '+(v===opt?'checked':'')+'>'+opt+'</label>').join('')+'</div>':'<input id="'+id+'" type="'+f[1]+'" '+(f[1]==='number'?'min="0" step="any"':'')+' value="'+esc(v)+'">'):'<span>'+esc(v||'—')+'</span>')+'</div>'}).join('')+(editing?'<div class="crf-change-reason"><label for="crfReason'+index+'"><em>*</em> 修改原因</label><textarea id="crfReason'+index+'" required maxlength="200" placeholder="请说明本次修改原因，例如：核对原始记录后更正录入内容"></textarea><div class="crf-error" id="crfError'+index+'" role="alert"></div></div><div class="crf-actions"><button type="button" data-crf-cancel>取消</button><button type="submit" class="primary">保存</button></div></form>':'</div>'):'<div class="crf-attachment-row">附件：无附件</div><p class="muted">该单元字段尚未逐项核对，保留平台单元位置；本轮编辑流程可在入院记录等已配置单元体验。</p>');
  if(!editing){const b=el.querySelector('[data-crf-edit]');if(b)b.onclick=()=>{if(editingUnit!==null){toast('请先保存或取消当前单元修改');return}editingUnit=index;drawUnit(index);focusUnit(index)};return}
  el.querySelector('[data-crf-cancel]').onclick=()=>{editingUnit=null;drawUnit(index)};
- $('crfForm'+index).onsubmit=e=>{e.preventDefault();const reason=$('crfReason'+index).value.trim();if(!reason){$('crfError'+index).textContent='请填写修改原因，不能仅输入空格';return}const values=schema.map((f,i)=>f[1]==='radio'?el.querySelector('input[name="crfField'+index+'_'+i+'"]:checked').value:$('crfField'+index+'_'+i).value.trim());const changes=crfChangeSet(schema,record,values);if(!changes.length){$('crfError'+index).textContent='数据未发生变化，无需保存';return}record.values=values;record.person='当前用户（模拟）';record.time=timestamp();data.unshift({id:'AUD-'+Date.now(),project:$('project').value,center:'模拟分中心一',subject:caseSubject,module:'CRF',type:'修改',object:'基线记录 / '+name,objectId:$('project').value+'|'+caseSubject+'|基线记录|'+name,changes,time:record.time,person:record.person,role:'CRC',reason,source:'科研工作台'});editingUnit=null;drawUnit(index);render();toast('CRF单元已保存，修改原因已记入稽查日志')};
+ $('crfForm'+index).onsubmit=e=>{e.preventDefault();const reason=$('crfReason'+index).value.trim();if(!reason||$('crfReason'+index).value.length>200){$('crfError'+index).textContent=reason?'修改原因不能超过 200 字符。':'请填写修改原因，不能仅输入空格';return}const values=schema.map((f,i)=>f[1]==='radio'?el.querySelector('input[name="crfField'+index+'_'+i+'"]:checked').value:$('crfField'+index+'_'+i).value.trim());const changes=crfChangeSet(schema,record,values);if(!changes.length){$('crfError'+index).textContent='数据未发生变化，无需保存';return}record.values=values;record.person='当前用户（模拟）';record.time=timestamp();data.unshift({id:'AUD-'+Date.now(),project:$('project').value,center:'模拟分中心一',subject:caseSubject,module:'CRF',type:'修改',object:'基线记录 / '+name,objectId:$('project').value+'|'+caseSubject+'|基线记录|'+name,changes,time:record.time,person:record.person,role:'CRC',reason,source:'科研工作台'});editingUnit=null;drawUnit(index);render();toast('CRF单元已保存，修改原因已记入稽查日志')};
 }
 document.querySelector('[data-nav="病例"]').onclick=()=>{if(editingUnit!==null){toast('请先保存或取消当前单元修改');return}showCases($('project').value==='郑目'?'040001':'200101')};
 $('auditNav').querySelector('button').onclick=()=>{if(editingUnit!==null){toast('请先保存或取消当前单元修改');return}showAudit()};
@@ -311,9 +312,9 @@ const fidelityShowCases=showCases;showCases=function(subject=caseSubject){fideli
 const alignedHome=showCases;
 showCases=function(subject=caseSubject){alignedHome(subject);const main=caseWorkspace.querySelector('.case-main');
 const overview=main.querySelector('.case-overview');overview.innerHTML='<div class="research-period">2023-12-25至2028-12-30（5年5天）</div><div class="research-times"><span>入组时间：　2025-05-27 17:13:59</span><span>入组来源：　CRC入组</span><span>入组时长：　477天</span><span>剩余时长：　1313天</span></div><div class="research-team">'+[['项目名称',$('project').value],['科研中心','模拟中心'],['组别','干预组'],['SS','模拟SS'],['招募CRC','模拟CRC'],['随访CRC','模拟CRC'],['CRC','模拟CRC'],['PM','模拟PM'],['CRA','模拟CRA'],['DM','模拟DM']].map(([k,v])=>'<div><label>'+k+'</label><span>'+esc(v)+'</span></div>').join('')+'</div>';
-const visits=main.querySelector('.case-visits');visits.classList.add('platform-timeline');visits.innerHTML='<div class="timeline-filter"><span>请选择年份　⌄</span><small>● 上传　<span>●</span> 监查　● 核查　● 锁定</small></div><div class="timeline-lane"><label>随机事件</label><div class="timeline-event">临床事件<br><small>2025-09-01　核查中</small></div></div><div class="timeline-lane"><label>固定访视</label><div class="timeline-stops">'+[['基线记录','2025-05-27'],['第一次访视','2025-06-26'],['第二次访视','2025-08-25'],['第三次访视','2025-11-23'],['第四次访视','2026-02-21'],['终点记录','2026-05-22']].map(([t,d],i)=>'<div><i></i>'+(i===0?'<button class="link" id="baselineVisit">'+t+'</button>':'<span>'+t+'</span>')+'<small>'+d+'</small><small>'+(i<3?'监查中':'待监查')+'</small></div>').join('')+'</div></div>';$('baselineVisit').onclick=()=>showBaseline('入院记录');};
+const visits=main.querySelector('.case-visits');visits.classList.add('platform-timeline');visits.innerHTML='<div class="timeline-filter"><span>请选择年份　⌄</span><small>● 上传　<span>●</span> 监查　● 核查　● 锁定</small></div><div class="timeline-lane"><label>随机事件</label><div class="timeline-event-list"></div></div><div class="timeline-lane"><label>固定访视</label><div class="timeline-stops">'+[['基线记录','2025-05-27'],['第一次访视','2025-06-26'],['第二次访视','2025-08-25'],['第三次访视','2025-11-23'],['第四次访视','2026-02-21'],['终点记录','2026-05-22']].map(([t,d],i)=>'<div><i></i>'+(i===0?'<button class="link" id="baselineVisit">'+t+'</button>':'<span>'+t+'</span>')+'<small>'+d+'</small><small>'+(i<3?'监查中':'待监查')+'</small></div>').join('')+'</div></div>';$('baselineVisit').onclick=()=>showBaseline('入院记录');};
 const alignedBaseline=showBaseline;
-showBaseline=function(name='入院记录'){alignedBaseline(name);const nav=caseWorkspace.querySelector('.crf-unit-nav');const wrap=document.createElement('div');wrap.className='unit-nav-shell';nav.before(wrap);wrap.append(nav);const expand=document.createElement('button');expand.className='link unit-expand';expand.textContent='展开 ⌄';expand.setAttribute('aria-expanded','false');wrap.append(expand);expand.onclick=()=>{const open=wrap.classList.toggle('expanded');expand.textContent=open?'收起 ⌃':'展开 ⌄';expand.setAttribute('aria-expanded',String(open))};
+showBaseline=function(name='入院记录', scrollBehavior='smooth'){alignedBaseline(name,scrollBehavior);const nav=caseWorkspace.querySelector('.crf-unit-nav');const wrap=document.createElement('div');wrap.className='unit-nav-shell';nav.before(wrap);wrap.append(nav);const expand=document.createElement('button');expand.className='link unit-expand';expand.textContent='展开 ⌄';expand.setAttribute('aria-expanded','false');wrap.append(expand);expand.onclick=()=>{const open=wrap.classList.toggle('expanded');expand.textContent=open?'收起 ⌃':'展开 ⌄';expand.setAttribute('aria-expanded',String(open))};
 const q=caseWorkspace.querySelector('.crf-queries');q.innerHTML='<div class="query-heading"><h3>记录质疑</h3><span class="tag">全部</span></div><div class="query-filters"><span>质疑类型 ⌄</span><span>质疑单元 ⌄</span><span>质疑状态 ⌄</span><span>重置</span></div><div class="query-table-wrap"><table><thead><tr>'+['质疑类型','质疑记录','质疑单元/对象','质疑状态','责任人'].map(t=>'<th>'+t+'</th>').join('')+'</tr></thead><tbody><tr><td>方案监查</td><td>基线记录</td><td>检查单元</td><td>已关闭</td><td>模拟CRC</td></tr><tr><td>数据核查</td><td>基线记录</td><td>入院记录</td><td>待接收</td><td>模拟CRC</td></tr></tbody></table></div><div class="query-pagination">共 2 条　 ‹　<span>1</span>　›</div>';
 };
 const alignedDraw=drawUnit;
@@ -341,11 +342,11 @@ const cloneGrid=x=>JSON.parse(JSON.stringify(x));
 function gridKey(name){return $('project').value+'|'+caseSubject+'|基线记录|'+name}
 function getGrid(name){const key=gridKey(name);if(!gridData[key])gridData[key]=name==='合并用药'?{rows:[['阿司匹林肠溶片','100 mg','75 mg'],['替格瑞洛片','90 mg','90 mg'],['阿托伐他汀钙片','20 mg','40 mg']].map((v,i)=>({id:'med-'+i,reason:'模拟用药原因',drug:v[0],spec:v[1],dose:v[2],frequency:i===1?'bid（每日2次）':'qd（每日1次）',timing:i===1?'早晚':'早上',route:'模拟用法',start:'2025-05-19',ongoing:'否',end:'2026-05-28'})),person:'模拟研究员甲',time:'2025-05-27 21:46:44'}:{date:'2025-05-17',rows:labConfig[name].map(([id,item,unit,result])=>({id,item,unit,result})),person:'模拟研究员甲',time:'2025-05-27 21:46:44'};return gridData[key]}
 function gridChanges(name,before,after){const cols=name==='合并用药'?medColumns:[['result','结果']];const changes=[];if(before.date!==after.date)changes.push({field:'检验日期',before:before.date||'未填写',after:after.date||'清空'});const rowText=r=>cols.map(([k,l])=>l+'：'+(r[k]||'—')).join('；');for(const row of before.rows){const next=after.rows.find(r=>r.id===row.id);const label=name==='合并用药'?'用药记录 '+row.id+' / '+row.drug:row.item+'（'+row.id+'）';if(!next){changes.push({field:label,before:rowText(row),after:'已删除'});continue}for(const [k,l] of cols)if(row[k]!==next[k])changes.push({field:label+' / '+l,before:row[k]||'未填写',after:next[k]||'清空'});}for(const row of after.rows)if(!before.rows.some(r=>r.id===row.id))changes.push({field:'新增用药记录 '+row.id,before:'无记录',after:rowText(row)});return changes}
-function gridValidation(name,draft,reason){if(!reason.trim())return '请填写修改原因，不能仅输入空格';if(name!=='合并用药')return draft.date?'':'请选择检验日期';for(const r of draft.rows){if(!r.drug.trim())return '请填写药品名称';if(!r.start)return '请选择开始日期';if(r.ongoing==='否'&&!r.end)return '非持续用药请填写结束日期';if(r.end&&r.start>r.end)return '结束日期不能早于开始日期'}return ''}
+function gridValidation(name,draft,reason){if(!reason.trim())return '请填写修改原因，不能仅输入空格';if(reason.length>200)return '修改原因不能超过 200 字符。';if(name!=='合并用药')return draft.date?'':'请选择检验日期';for(const r of draft.rows){if(!r.drug.trim())return '请填写药品名称';if(!r.start)return '请选择开始日期';if(r.ongoing==='否'&&!r.end)return '非持续用药请填写结束日期';if(r.end&&r.start>r.end)return '结束日期不能早于开始日期'}return ''}
 const priorGridDraw=drawUnit;
 drawUnit=function(index){const name=baselineUnits[index];if(name!=='合并用药'&&!labConfig[name])return priorGridDraw(index);drawGridUnit(index)};
 function drawGridUnit(index){const name=baselineUnits[index],key=gridKey(name),record=getGrid(name),edit=editingUnit===index,med=name==='合并用药';const draft=edit?(gridDrafts[key]||(gridDrafts[key]={...cloneGrid(record),reason:''})):record;const el=$('crfUnit'+index);
-el.innerHTML='<div class="crf-unit-heading"><h3>'+name+'</h3>'+(!edit?'<span class="muted">上次编辑人/时间：'+esc(record.person)+' / '+esc(record.time)+'</span><button class="link" id="gridEdit'+index+'">✎ 编辑</button>':'')+'</div><form id="gridForm'+index+'">'+(!med?'<div class="crf-field"><label>日期：</label>'+(edit?'<input id="gridDate'+index+'" type="date" required value="'+esc(draft.date)+'">':'<span>'+esc(record.date)+'</span>')+'</div>':'')+'<div class="crf-attachment-row">附件：<span class="muted">'+(med?'无附件':'检验报告样例.jpg')+'</span></div><h4>'+ (med?'用药记录':'检验结果') +'</h4><div class="unit-grid-wrap"><table class="unit-grid '+(med?'med-grid':'lab-grid')+'"><thead><tr><th>序号</th>'+(med?medColumns.map(c=>'<th>'+c[1]+'</th>').join(''):'<th>检验项目</th><th>缩写</th><th>结果</th><th>单位</th>')+(med&&edit?'<th class="grid-operation">操作</th>':'')+'</tr></thead><tbody>'+draft.rows.map((r,i)=>'<tr data-gridrow="'+r.id+'"><td>'+(i+1)+'</td>'+(med?medColumns.map(([k,l,type])=>'<td>'+(edit&&medRowEditing===r.id?(type==='select'?'<select data-medkey="'+k+'" aria-label="'+l+'"><option'+(r[k]==='否'?' selected':'')+'>否</option><option'+(r[k]==='是'?' selected':'')+'>是</option></select>':'<input data-medkey="'+k+'" type="'+(type||'text')+'" value="'+esc(r[k])+'" aria-label="'+l+'" '+(k==='end'&&r.ongoing==='是'?'disabled':'')+'>'):esc(r[k]||'—'))+'</td>').join(''):'<td>'+esc(r.item)+'</td><td>'+esc(r.id)+'</td><td>'+(edit?'<input data-result="'+r.id+'" aria-label="'+esc(r.item)+'结果" value="'+esc(r.result)+'" maxlength="100">':esc(r.result||'—'))+'</td><td>'+esc(r.unit||'—')+'</td>')+(med&&edit?'<td class="grid-operation">'+(medRowEditing===r.id?'<button type="button" class="link" data-row-done="'+r.id+'">完成</button>':'<button type="button" class="link" data-row-edit="'+r.id+'">修改</button>')+'<button type="button" class="link danger" data-row-delete="'+r.id+'">删除</button></td>':'')+'</tr>').join('')+(draft.rows.length?'':'<tr><td colspan="12" class="grid-empty">暂无用药记录</td></tr>')+'</tbody></table></div>'+(med&&edit?'<button type="button" class="link grid-add" id="addMedication">＋新增用药记录</button>':'')+(edit?'<div class="crf-change-reason"><label for="gridReason'+index+'"><em>*</em> 修改原因</label><textarea required id="gridReason'+index+'" maxlength="500" placeholder="请说明本次单元修改的原因">'+esc(draft.reason)+'</textarea><div class="crf-error" id="gridError'+index+'" role="alert"></div></div><div class="crf-actions"><button type="button" id="gridCancel'+index+'">取消</button><button class="primary" type="submit">保存</button></div>':'')+'</form>';
+el.innerHTML='<div class="crf-unit-heading"><h3>'+name+'</h3>'+(!edit?'<span class="muted">上次编辑人/时间：'+esc(record.person)+' / '+esc(record.time)+'</span><button class="link" id="gridEdit'+index+'">✎ 编辑</button>':'')+'</div><form id="gridForm'+index+'">'+(!med?'<div class="crf-field"><label>日期：</label>'+(edit?'<input id="gridDate'+index+'" type="date" required value="'+esc(draft.date)+'">':'<span>'+esc(record.date)+'</span>')+'</div>':'')+'<div class="crf-attachment-row">附件：<span class="muted">'+(med?'无附件':'检验报告样例.jpg')+'</span></div><h4>'+ (med?'用药记录':'检验结果') +'</h4><div class="unit-grid-wrap"><table class="unit-grid '+(med?'med-grid':'lab-grid')+'"><thead><tr><th>序号</th>'+(med?medColumns.map(c=>'<th>'+c[1]+'</th>').join(''):'<th>检验项目</th><th>缩写</th><th>结果</th><th>单位</th>')+(med&&edit?'<th class="grid-operation">操作</th>':'')+'</tr></thead><tbody>'+draft.rows.map((r,i)=>'<tr data-gridrow="'+r.id+'"><td>'+(i+1)+'</td>'+(med?medColumns.map(([k,l,type])=>'<td>'+(edit&&medRowEditing===r.id?(type==='select'?'<select data-medkey="'+k+'" aria-label="'+l+'"><option'+(r[k]==='否'?' selected':'')+'>否</option><option'+(r[k]==='是'?' selected':'')+'>是</option></select>':'<input data-medkey="'+k+'" type="'+(type||'text')+'" value="'+esc(r[k])+'" aria-label="'+l+'" '+(k==='end'&&r.ongoing==='是'?'disabled':'')+'>'):esc(r[k]||'—'))+'</td>').join(''):'<td>'+esc(r.item)+'</td><td>'+esc(r.id)+'</td><td>'+(edit?'<input data-result="'+r.id+'" aria-label="'+esc(r.item)+'结果" value="'+esc(r.result)+'" maxlength="100">':esc(r.result||'—'))+'</td><td>'+esc(r.unit||'—')+'</td>')+(med&&edit?'<td class="grid-operation">'+(medRowEditing===r.id?'<button type="button" class="link" data-row-done="'+r.id+'">完成</button>':'<button type="button" class="link" data-row-edit="'+r.id+'">修改</button>')+'<button type="button" class="link danger" data-row-delete="'+r.id+'">删除</button></td>':'')+'</tr>').join('')+(draft.rows.length?'':'<tr><td colspan="12" class="grid-empty">暂无用药记录</td></tr>')+'</tbody></table></div>'+(med&&edit?'<button type="button" class="link grid-add" id="addMedication">＋新增用药记录</button>':'')+(edit?'<div class="crf-change-reason"><label for="gridReason'+index+'"><em>*</em> 修改原因</label><textarea required id="gridReason'+index+'" maxlength="200" placeholder="请说明本次单元修改的原因">'+esc(draft.reason)+'</textarea><div class="crf-error" id="gridError'+index+'" role="alert"></div></div><div class="crf-actions"><button type="button" id="gridCancel'+index+'">取消</button><button class="primary" type="submit">保存</button></div>':'')+'</form>';
 if(!edit){$('gridEdit'+index).onclick=()=>{if(editingUnit!==null){toast('请先保存或取消当前单元修改');return}editingUnit=index;medRowEditing=null;gridDrafts[key]={...cloneGrid(record),reason:''};drawGridUnit(index);focusUnit(index)};return}
 const collect=()=>{draft.reason=$('gridReason'+index).value;if(!med){draft.date=$('gridDate'+index).value;el.querySelectorAll('[data-result]').forEach(input=>draft.rows.find(r=>r.id===input.dataset.result).result=input.value.trim())}else el.querySelectorAll('[data-gridrow]').forEach(tr=>{const r=draft.rows.find(r=>r.id===tr.dataset.gridrow);tr.querySelectorAll('[data-medkey]').forEach(input=>r[input.dataset.medkey]=input.value.trim());if(r.ongoing==='是')r.end=''})};
 el.querySelectorAll('[data-row-edit]').forEach(b=>b.onclick=()=>{collect();medRowEditing=b.dataset.rowEdit;drawGridUnit(index)});el.querySelectorAll('[data-row-done]').forEach(b=>b.onclick=()=>{collect();medRowEditing=null;drawGridUnit(index)});el.querySelectorAll('[data-row-delete]').forEach(b=>b.onclick=()=>{collect();draft.rows=draft.rows.filter(r=>r.id!==b.dataset.rowDelete);medRowEditing=null;drawGridUnit(index)});
@@ -476,6 +477,28 @@ const indicatorStyle=document.createElement('style');indicatorStyle.textContent=
 .event-history-table thead th{background:#f5f7fa;color:inherit}
 .event-history-table tbody th{font-weight:400}
 .event-history-table.terminal th:first-child{width:38%}
+.event-history-delete-reason{margin:0;padding:0 14px 14px;overflow-wrap:anywhere}
+.timeline-event-list{display:flex;flex-wrap:wrap;gap:10px;min-width:0}
+button.timeline-event{text-align:left}
+.case-event-heading,.case-event-attachments{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:14px 20px;border-bottom:1px solid #e4eaf0}
+.case-event-heading h3,.case-event-content h3{margin:0}
+.case-event-heading .danger{margin-left:auto;background:#e8364d;color:#fff;border:1px solid #e8364d}
+.case-event-content{min-width:0;flex:1;padding:18px 20px}
+.case-event-content .event-history-info{padding:14px 0 0}
+.case-event-query-empty{padding:48px 0;text-align:center}
+#modal:has(#eventDeleteForm){padding:0;overflow:hidden;border:1px solid #e2e8f0;border-radius:12px;box-shadow:0 18px 48px #192c4d30}
+.event-delete-title{margin:0;padding:16px 22px;background:#f5f7fb;border-bottom:1px solid #e2e8f0;color:#243650;font-size:16px;font-weight:600}
+.event-delete-body{padding:16px 22px}
+#eventDeleteForm .event-delete-description{margin:0 0 14px;color:#64748b;font-size:12px;line-height:1.6}
+#eventDeleteForm label,#eventDeleteForm textarea{display:block;width:100%}
+#eventDeleteForm label{font-weight:600;color:#253750}
+.event-delete-required{margin-right:4px;color:#c83445}
+#eventDeleteForm textarea{margin-top:8px;padding:10px 12px;min-height:110px;resize:vertical;border-radius:6px}
+.event-delete-count{display:block;margin-top:4px;text-align:right;font-size:12px;color:#64748b}
+#eventDeleteError{color:#b42318;margin-top:6px;font-size:12px}
+#eventDeleteError:empty{display:none}
+#eventDeleteForm .modalfoot{margin:0;padding:12px 22px;border-top:1px solid #e2e8f0;background:#fafbfd}
+#eventDeleteForm .modalfoot button{padding:7px 14px;border-radius:6px}
 #logTable{min-width:1850px}#logTable th:last-child,#logTable td:last-child{position:static;background:inherit;box-shadow:none}
 #logTable .indicator-value{white-space:pre-wrap;min-width:135px;max-width:250px;overflow-wrap:anywhere}#logTable .indicator-value details{max-width:250px}#logTable .indicator-value summary{cursor:pointer;color:#268cb5}
 .unit-history-icon{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;padding:5px;color:#658296;background:transparent;border:1px solid transparent;border-radius:5px;flex-shrink:0}.unit-history-icon:hover,.unit-history-icon:focus-visible{color:#128bb6;background:#edf7fc;border-color:#9ccbdd}.crf-unit-heading h3{margin-right:auto}
@@ -572,7 +595,9 @@ function openEventHistory(project, subject, row) {
    return '<section class="event-history-group">'+
     history.map((operation,index)=>'<article class="indicator-history-entry history-operation'+(operation.id===row?.id?' selected-operation':'')+
      '">'+historyOperationHeader(operation)+
-     renderEventInfo(event.object,eventBasicInfo(history.slice(index)),deleted)+'</article>').join('')+'</section>';
+     renderEventInfo(event.object,eventBasicInfo(history.slice(index)),deleted)+
+     (operation.type==='删除'&&operation.reason?'<p class="event-history-delete-reason">删除原因：'+esc(operation.reason)+'</p>':'')+
+     '</article>').join('')+'</section>';
   }).join('')||'<div class="indicator-history-empty">暂无历史记录</div>';
  }
  filter.onchange=drawEvents;
@@ -581,6 +606,73 @@ function openEventHistory(project, subject, row) {
  panel.scrollTop=0;
  panel.querySelector('[data-close]').focus();
  requestAnimationFrame(()=>panel.querySelector('.selected-operation')?.scrollIntoView({block:'nearest'}));
+}
+function clinicalEventStatus(history) {
+ if (history[0]?.type==='删除') return '已删除';
+ return history.some(row=>row.type==='核查通过') ? '核查通过' : '核查中';
+}
+function clinicalEventModel(event) {
+ const history=unitHistoryRows(event);
+ const fields=eventBasicInfo(history);
+ const date=String(fields.get('发生时间') || event.time).slice(0,10);
+ return {history,fields,date,status:clinicalEventStatus(history)};
+}
+function openClinicalEvent(event) {
+ const {fields,date,status}=clinicalEventModel(event);
+ if (status==='已删除') return;
+ const main=caseWorkspace.querySelector('.case-main');
+ const title='临床事件记录 '+date;
+ for (const section of [...main.children]) {
+  if (!section.matches('.case-person,.case-tabs')) section.remove();
+ }
+ main.insertAdjacentHTML('beforeend',
+  '<div class="crf-visit-tabs"><button type="button" id="eventHome">主页</button><strong>'+esc(title)+
+  ' <button type="button" class="link" id="closeClinicalEvent" aria-label="关闭临床事件详情">×</button></strong></div>'+
+  '<div class="case-event-heading"><h3>'+esc(title)+'</h3><span class="tag">'+esc(status)+'</span>'+
+  (status==='核查中'?'<button type="button" class="danger" id="deleteClinicalEvent">删除记录</button>':'')+'</div>'+
+  '<div class="case-event-attachments"><strong>全部附件</strong><span class="muted">无附件</span></div>'+
+  '<div class="crf-body"><section class="case-event-content"><h3>临床事件</h3>'+renderEventInfo(event.object,fields)+
+  '</section><aside class="crf-queries"><div class="query-heading"><h3>记录质疑</h3></div>'+
+  '<p class="muted case-event-query-empty">暂无数据</p></aside></div>');
+ const close=()=>showCases(event.subject);
+ $('eventHome').onclick=close;
+ $('closeClinicalEvent').onclick=close;
+ if($('deleteClinicalEvent')) $('deleteClinicalEvent').onclick=()=>confirmClinicalEventDeletion(event);
+ main.querySelector('.crf-visit-tabs').scrollIntoView({block:'start'});
+}
+function confirmClinicalEventDeletion(event) {
+ if (clinicalEventStatus(unitHistoryRows(event))!=='核查中') return;
+ const maxLength=200;
+ modal('<h2 class="event-delete-title">删除记录</h2><form id="eventDeleteForm" novalidate>'+
+  '<div class="event-delete-body"><p class="event-delete-description">删除后，可在事件历史中查看此记录及删除原因。</p>'+
+  '<label for="eventDeleteReason"><span class="event-delete-required" aria-hidden="true">*</span>删除原因</label>'+
+  '<textarea id="eventDeleteReason" required maxlength="'+maxLength+'" aria-describedby="eventDeleteCount eventDeleteError" placeholder="请输入删除原因"></textarea>'+
+  '<span class="event-delete-count" id="eventDeleteCount">0 / '+maxLength+'</span>'+
+  '<div id="eventDeleteError" role="alert"></div></div>'+
+  '<div class="modalfoot"><button type="button" data-close="modalMask">取消</button><button type="submit" class="primary">确认删除</button></div></form>');
+ const input=$('eventDeleteReason');
+ input.oninput=()=>{
+  $('eventDeleteCount').textContent=input.value.length+' / '+maxLength;
+  $('eventDeleteError').textContent='';
+ };
+ input.focus();
+ $('eventDeleteForm').onsubmit=eventSubmit=>{
+  eventSubmit.preventDefault();
+  const reason=input.value.trim();
+  if (!reason || input.value.length>maxLength) {
+   $('eventDeleteError').textContent=reason?'删除原因不能超过 '+maxLength+' 字符。':'请填写删除原因。';
+   input.focus();
+   return;
+  }
+  const {fields,status}=clinicalEventModel(event);
+  if (status!=='核查中') return;
+  const changes=[...fields].map(([field,before])=>({field,before,after:'已删除'}));
+  data.unshift({...event,id:'AUD-EVENT-DELETE-'+Date.now(),module:'事件',type:'删除',time:timestamp(),
+   person:'当前用户（模拟）',role:'CRC',source:'科研工作台',reason,changes});
+  $('modalMask').classList.remove('open');
+  showCases(event.subject);
+  toast('记录已删除，可在事件历史中查看。');
+ };
 }
 let historyReturnFocus=null;
 function openUnitHistory(context,operationId='',field=''){
@@ -643,6 +735,18 @@ showCases=function(subject=caseSubject){
  entry.setAttribute('aria-label','事件历史');
  entry.onclick=()=>openEventHistory($('project').value,subject);
  eventActions.append(entry);
+ const timeline=caseWorkspace.querySelector('.timeline-event-list');
+ const events=eventHistoryOptions($('project').value,subject).filter(event=>event.object==='临床事件'&&event.type!=='删除');
+ for (const event of events) {
+  const {date,status}=clinicalEventModel(event);
+  const button=document.createElement('button');
+  button.type='button';
+  button.className='timeline-event';
+  button.innerHTML='临床事件<br><small>'+esc(date)+'　'+esc(status)+'</small>';
+  button.onclick=()=>openClinicalEvent(event);
+  timeline.append(button);
+ }
+ if (!events.length) timeline.textContent='暂无临床事件';
 };
 render();
 
@@ -650,7 +754,7 @@ render();
 <div id="auditAnnotationPins"></div>
 <svg id="auditAnnotationLink" aria-hidden="true"></svg>
 <button type="button" id="auditAnnotationToggle" aria-controls="auditAnnotationPanel" aria-expanded="false">批注</button>
-<script id="auditAnnotationState" type="application/json">{"documentId":"hrt-audit-annotations-2026","revision":"9cc57df0-41fc-41d5-9f43-61ffb18dadad","nextId":9,"notes":[{"id":1,"selector":"#auditNav","title":"稽查入口","sections":{"定义与范围":"从顶部导航进入稽查，查看谁在何时对哪个项目、受试者及记录执行了什么操作，核对变更前后值及适用的操作原因。","待确认":"","演示假设":"","权限说明":"稽查入口对全体角色可见。日志数据沿用已有项目和分中心权限。"}},{"id":6,"selector":"#projectScope","title":"科研项目","sections":{"定义与范围":"每次查看一个科研项目。项目必选、单选，初始默认选中一个项目。","加载逻辑":"切换项目立即查询该项目的日志，同时清空其他条件、刷新分中心选项、回到数据稽查第一页。","交互规则":"点击重置清空其他筛选条件，保留当前项目和页签。","权限说明":"项目及分中心选项应来自用户已有的数据权限。","状态与异常":"若当前人员无科研项目时，科研项目列表为空，下方展示暂无数据"},"page":"audit"},{"id":2,"selector":"#filterSection","title":"筛选区域","sections":{"页面元素":"1、基础筛选包含科研项目、分中心、受试者档案编号和操作时间。展开后可按操作类型、操作人员、修改对象和操作人员角色筛选。\n2、操作类型包含全部、新增、修改、删除（单选）\n3、操作人员角色包含全部、PI、PM、CRA、CRC、DM、SMO、CRO、系统（单选）\n","加载逻辑":"1、每次查询一个项目。切换项目立即生效，其他条件点击查询后生效，分中心选项随项目联动变更\n2、档案编号、操作人员和修改对象按输入文字匹配，修改对象匹配记录、单元或字段名称。","交互规则":"日期按自然日筛选，含首尾；开始日期晚于结束日期时提示调整。点击重置保留当前项目和页签。","演示假设":""}},{"id":3,"selector":"#tabs","title":"稽查页签","sections":{"定义与范围":"1、数据稽查合并 CRF 与事件变更。事件示例包含临床事件、失访事件、退出事件和终点事件。\n2、质控稽查记录单元锁定、解锁及临床事件的核查通过。\n\n","交互规则":"默认展示数据稽查。切换页签回到第一页，并清除该页签不适用的操作类型。","待确认":"项目与研究用药的操作范围待确认，本期不做。","加载逻辑":"1、数据稽查本期仅做“检查”下的所有单元及事件的记录\n2、质控稽查本期做所有单元的记录"}},{"id":4,"selector":"#tableWrap","title":"日志列表与历史定位","sections":{"页面元素":"1、数据稽查和质控稽查两者均显示操作时间、受试者、项目、分中心、操作类型、记录/单元、操作人员、角色及来源。\n2、数据稽查另展示指标/字段、修改前后数据及操作原因；\n3、质控稽查展示修改前后状态，如「未锁定 → 已锁定」「待核查 → 核查通过」。\n4、操作来源表示发起平台或渠道。包括科研工作台、科研项目管理、哈瑞特健康、哈瑞特工作室、哈瑞特员工、哈瑞特医疗和数据同步。","交互规则":"1、点击记录/单元查看历史并定位到病历模块下对应变更。\n2、较长的变更值采用...的形式进行省略，鼠标悬浮进行查看。（项目名称、分中心名称、记录/单元、操作原因）","排序与数量":"按操作时间倒序，每页默认10条","状态与异常":"无匹配记录时显示当前无数据"}},{"id":5,"selector":"#crfUnit13 > div:nth-of-type(1)","title":"病例编辑与单元历史","sections":{"交互规则":"修改已配置的 CRF 单元时须填写修改原因。保存后按变化字段记录；无变化或取消时不生成日志。点击单元旁的历史图标可查看该单元的操作记录。","排序与数量":"历史按项目、受试者和记录或单元归集，每次操作为一组，按时间倒序，可按指标筛选。","状态与异常":"没有匹配操作时显示暂无历史记录。","演示假设":"病例修改仅用于当前页面演示，刷新后重置。"},"page":"baseline"},{"id":8,"page":"history","selector":".drawerhead","title":"历史记录 · 页面元素与显示规则","sections":{"定义与范围":"查看当前项目、受试者与记录或单元的变更历史。病例基础信息或基线单元可通过标题旁的历史图标打开。","页面元素":"顶部显示受试者档案编号、记录或单元名称、项目名称和排序提示。筛选项为「指标 / 字段」，默认「全部指标」，其余选项来自项目配置处的字段。\n每张卡片显示操作类型、操作时间（YYYY-MM-DD HH:mm:ss）、操作人员、操作时的角色和来源。数据稽查示例类型为新增、修改、删除，质控示例为锁定、解锁。\n变更表列为「指标 / 字段」「修改前」「修改后」。质控状态示例为「已锁定」「未锁定」。未采集的来源或适用的操作原因显示为“--”。锁定、解锁卡片不显示操作原因。","交互规则":"选择指标后只展示包含该指标的操作卡片，并在卡内仅展示匹配字段；切回「全部指标」恢复完整记录。从稽查列表进入时，选中对应的指标/字段。点击右上角关闭按钮、遮罩退出。","排序与数量":"按操作时间从新到旧展示。每次操作一张卡片，同次操作涉及的多个字段逐行对照。侧栏可滚动，不分页。","状态与异常":"没有历史记录或没有匹配的变更时，显示「暂无历史记录」。","事件规则":"同一病例可有多条事件，每条事件的历史独立归集。事件新增后不支持编辑；核查通过前可删除，核查通过后不可删除。已删除事件仍可在事件历史查看。四种事件新增表单的字段、必填项及条件联动待测试环境核对。\n事件历史按事件类型筛选。每张操作卡片上方展示操作类型、时间及人员、角色、平台，下方直接展示该次操作对应的完整已记录事件信息。删除卡片保留删除前的信息，失访原因独立成区。"}}]}</script>
+<script id="auditAnnotationState" type="application/json">{"documentId":"hrt-audit-annotations-2026","revision":"9cc57df0-41fc-41d5-9f43-61ffb18dadad","nextId":9,"notes":[{"id":1,"selector":"#auditNav","title":"稽查入口","sections":{"定义与范围":"从顶部导航进入稽查，查看谁在何时对哪个项目、受试者及记录执行了什么操作，核对变更前后值及适用的操作原因。","待确认":"","演示假设":"","权限说明":"稽查入口对全体角色可见。日志数据沿用已有项目和分中心权限。"}},{"id":6,"selector":"#projectScope","title":"科研项目","sections":{"定义与范围":"每次查看一个科研项目。项目必选、单选，初始默认选中一个项目。","加载逻辑":"切换项目立即查询该项目的日志，同时清空其他条件、刷新分中心选项、回到数据稽查第一页。","交互规则":"点击重置清空其他筛选条件，保留当前项目和页签。","权限说明":"项目及分中心选项应来自用户已有的数据权限。","状态与异常":"若当前人员无科研项目时，科研项目列表为空，下方展示暂无数据"},"page":"audit"},{"id":2,"selector":"#filterSection","title":"筛选区域","sections":{"页面元素":"1、基础筛选包含科研项目、分中心、受试者档案编号和操作时间。展开后可按操作类型、操作人员、修改对象和操作人员角色筛选。\n2、操作类型包含全部、新增、修改、删除（单选）\n3、操作人员角色包含全部、PI、PM、CRA、CRC、DM、SMO、CRO、系统（单选）\n","加载逻辑":"1、每次查询一个项目。切换项目立即生效，其他条件点击查询后生效，分中心选项随项目联动变更\n2、档案编号、操作人员和修改对象按输入文字匹配，修改对象匹配记录、单元或字段名称。","交互规则":"日期按自然日筛选，含首尾；开始日期晚于结束日期时提示调整。点击重置保留当前项目和页签。","演示假设":""}},{"id":3,"selector":"#tabs","title":"稽查页签","sections":{"定义与范围":"1、数据稽查合并 CRF 与事件变更。事件示例包含临床事件、失访事件、退出事件和终点事件。\n2、质控稽查记录单元锁定、解锁及临床事件的核查通过。\n\n","交互规则":"默认展示数据稽查。切换页签回到第一页，并清除该页签不适用的操作类型。","待确认":"项目与研究用药的操作范围待确认，本期不做。","加载逻辑":"1、数据稽查本期仅做“检查”下的所有单元及事件的记录\n2、质控稽查本期做所有单元的记录"}},{"id":4,"selector":"#tableWrap","title":"日志列表与历史定位","sections":{"页面元素":"1、数据稽查和质控稽查两者均显示操作时间、受试者、项目、分中心、操作类型、记录/单元、操作人员、角色及来源。\n2、数据稽查另展示指标/字段、修改前后数据及操作原因；\n3、质控稽查展示修改前后状态，如「未锁定 → 已锁定」「待核查 → 核查通过」。\n4、操作来源表示发起平台或渠道。包括科研工作台、科研项目管理、哈瑞特健康、哈瑞特工作室、哈瑞特员工、哈瑞特医疗和数据同步。","交互规则":"1、点击记录/单元查看历史并定位到病历模块下对应变更。\n2、较长的变更值采用...的形式进行省略，鼠标悬浮进行查看。（项目名称、分中心名称、记录/单元、操作原因）","排序与数量":"按操作时间倒序，每页默认10条","状态与异常":"无匹配记录时显示当前无数据"}},{"id":5,"selector":"#crfUnit13 > div:nth-of-type(1)","title":"病例编辑与单元历史","sections":{"交互规则":"修改已配置的 CRF 单元时须填写修改原因，最多 200 字符。保存后按变化字段记录；无变化或取消时不生成日志。点击单元旁的历史图标可查看该单元的操作记录。","排序与数量":"历史按项目、受试者和记录或单元归集，每次操作为一组，按时间倒序，可按指标筛选。","状态与异常":"没有匹配操作时显示暂无历史记录。","演示假设":"病例修改仅用于当前页面演示，刷新后重置。"},"page":"baseline"},{"id":8,"page":"history","selector":".drawerhead","title":"历史记录 · 页面元素与显示规则","sections":{"定义与范围":"查看当前项目、受试者与记录或单元的变更历史。病例基础信息或基线单元可通过标题旁的历史图标打开。","页面元素":"顶部显示受试者档案编号、记录或单元名称、项目名称和排序提示。筛选项为「指标 / 字段」，默认「全部指标」，其余选项来自项目配置处的字段。\n每张卡片显示操作类型、操作时间（YYYY-MM-DD HH:mm:ss）、操作人员、操作时的角色和来源。数据稽查示例类型为新增、修改、删除，质控示例为锁定、解锁。\n变更表列为「指标 / 字段」「修改前」「修改后」。质控状态示例为「已锁定」「未锁定」。未采集的来源或适用的操作原因显示为“--”。锁定、解锁卡片不显示操作原因。","交互规则":"选择指标后只展示包含该指标的操作卡片，并在卡内仅展示匹配字段；切回「全部指标」恢复完整记录。从稽查列表进入时，选中对应的指标/字段。点击右上角关闭按钮、遮罩退出。","排序与数量":"按操作时间从新到旧展示。每次操作一张卡片，同次操作涉及的多个字段逐行对照。侧栏可滚动，不分页。","状态与异常":"没有历史记录或没有匹配的变更时，显示「暂无历史记录」。","事件规则":"同一病例可有多条事件，每条事件的历史独立归集。事件新增后不支持编辑；核查通过前可删除，核查通过后不可删除。已删除事件仍可在事件历史查看。四种事件新增表单的字段、必填项及条件联动待测试环境核对。\n事件历史按事件类型筛选。每张操作卡片上方展示操作类型、时间及人员、角色、平台，下方直接展示该次操作对应的完整已记录事件信息。删除卡片保留删除前的信息，失访原因独立成区。"}}]}</script>
 <script id="auditAnnotationCode">
 (() => {
   const get = id => document.getElementById('auditAnnotation' + id);
@@ -668,6 +772,7 @@ render();
   let frame = 0, emphasized = false, busy = false;
   let rebindId = null, dragId = null, dropCard = null;
   let renderedPage = '';
+  let locateFrame = 0;
   try {
     const cached = JSON.parse(localStorage.getItem(cacheKey));
     if (cached?.baseRevision === baseRevision && cached.state?.documentId === initial.documentId) {
@@ -689,7 +794,8 @@ render();
   }
   function target(note) {
     try {
-      return (note.page === 'history' ? historyDrawer() : product)?.querySelector(note.selector);
+      const root = note.page === 'history' ? historyDrawer() : product;
+      return root?.matches(note.selector) ? root : root?.querySelector(note.selector);
     } catch { return null; }
   }
   function historyDrawer() {
@@ -722,28 +828,52 @@ render();
   }
   function locate(note) {
     stopPicking();
+    if (locateFrame) cancelAnimationFrame(locateFrame);
+    locateFrame = 0;
+    const page = notePage(note);
+    const drawer = historyDrawer();
+    if (drawer && page !== 'history') document.getElementById('detailMask').classList.remove('open');
     if (!onCurrentPage(note)) {
       if (editingUnit !== null) return message('请先保存或取消当前单元的修改。');
-      const page = notePage(note);
       if (page === 'history') {
         showCases(caseSubject);
         caseWorkspace.querySelector('[title="查看基础信息历史记录"]')?.click();
       } else if (page === 'audit') showAudit();
       else {
         showCases(caseSubject);
-        if (page === 'baseline') showBaseline();
+        if (page === 'baseline') {
+          const unit = /#(?:crfUnit|crfField|crfForm|crfReason|gridForm|gridReason)(\d+)/.exec(note.selector);
+          showBaseline(baselineUnits[Number(unit?.[1])] || '入院记录', 'instant');
+        }
       }
       render();
     }
     const element = target(note);
-    select(note.id);
     const advanced = document.getElementById('advancedFilters');
-    if (advanced.hidden && advanced.contains(element)) document.getElementById('toggleFilters').click();
-    if (!element?.getClientRects().length) {
-      return message('当前页面未显示此组件，请打开对应区域后再定位。');
+    if (advanced.hidden && (element === advanced || advanced.contains(element))) {
+      document.getElementById('toggleFilters').click();
     }
-    element.scrollIntoView({block:'center', inline:'nearest'});
-    schedule();
+    select(note.id);
+    locateFrame = requestAnimationFrame(() => {
+      const component = visibleTarget(note);
+      if (!component) message('当前页面未显示此组件，请打开对应区域后再定位。');
+      else {
+        const container = page === 'history' ? historyDrawer() : product;
+        component.scrollIntoView({block:component.offsetHeight > container.clientHeight/2 ? 'start' : 'center',
+          inline:'nearest', behavior:'instant'});
+        select(note.id);
+      }
+      locateFrame = 0;
+    });
+  }
+  function visibleTarget(note) {
+    const element = target(note);
+    if (!element || element.closest('[hidden]')) return null;
+    if (element.getClientRects().length) return element;
+    if (getComputedStyle(element).display === 'contents') {
+      return [...element.children].find(child => child.getClientRects().length) || null;
+    }
+    return null;
   }
   function visibleRect(element, container) {
     if (!element?.getClientRects().length) return null;
@@ -766,7 +896,7 @@ render();
     for (const note of state.notes) {
       if (!onCurrentPage(note)) continue;
       if (drawer && note.page !== 'history') continue;
-      const element = target(note);
+      const element = visibleTarget(note);
       const container = note.page === 'history' ? drawer : product;
       const rect = visibleRect(element, container);
       if (!rect) continue;
@@ -802,7 +932,7 @@ render();
     link.replaceChildren();
     const note = state.notes.find(item => item.id === activeId);
     const container = drawer || product;
-    const element = note && onCurrentPage(note) && (!drawer || note.page === 'history') && target(note);
+    const element = note && onCurrentPage(note) && (!drawer || note.page === 'history') && visibleTarget(note);
     const anchor = note && get('Anchor' + note.id);
     const start = visibleRect(element, container);
     const end = visibleRect(anchor, panel);
