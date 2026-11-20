@@ -483,7 +483,13 @@ const indicatorStyle=document.createElement('style');indicatorStyle.textContent=
 .event-history-table thead th{background:#f5f7fa;color:inherit}
 .event-history-table tbody th{font-weight:400}
 .event-history-table.terminal th:first-child{width:38%}
-.event-history-delete-reason{margin:0;padding:0 14px 14px;overflow-wrap:anywhere}
+.event-history-delete-reason{margin:0;padding:0 14px 14px;overflow-wrap:anywhere;white-space:pre-wrap}
+.event-edit-fields{display:grid;gap:16px;padding:18px 22px;max-height:58vh;overflow:auto}
+.event-edit-fields label{display:grid;gap:6px}
+.event-edit-fields textarea,.event-edit-fields input,.event-edit-fields select{width:100%;padding:8px 10px;border:1px solid #d7deea;border-radius:5px}
+.event-edit-fields textarea{min-height:72px;resize:vertical}
+.event-edit-required,#eventEditError{color:#d84444}
+.event-edit-count{font-size:12px;color:#8290a5;text-align:right}
 .timeline-event-list{display:flex;flex-wrap:wrap;gap:10px;min-width:0}
 .timeline-lane.random-event-lane{display:grid;grid-template-columns:70px minmax(0,1fr);grid-template-rows:auto 1fr;gap:4px 20px}
 .random-event-lane>label{grid-column:1;grid-row:1}
@@ -652,7 +658,7 @@ function openEventHistory(project, subject, row) {
     return '<article class="indicator-history-entry history-operation'+(operation.id===row?.id?' selected-operation':'')+
      '">'+historyOperationHeader(operation)+
      renderEventInfo(event.object,eventBasicInfo(history.slice(index)),deleted)+
-     (operation.type==='删除'&&operation.reason?'<p class="event-history-delete-reason">删除原因：'+esc(operation.reason)+'</p>':'')+
+     (['修改','删除'].includes(operation.type)?'<p class="event-history-delete-reason">'+(operation.type==='修改'?'修改原因':'删除原因')+'：'+esc(operation.reason||'历史数据未采集')+'</p>':'')+
      '</article>';
    }).join('');
    return cards ? ['<section class="event-history-group">'+cards+'</section>'] : [];
@@ -672,14 +678,14 @@ function clinicalEventStatus(history) {
 function clinicalEventModel(event) {
  const history=unitHistoryRows(event);
  const fields=eventBasicInfo(history);
- const date=String(fields.get('发生时间') || event.time).slice(0,10);
+ const date=String(fields.get('发生时间') || fields.get('失访时间') || fields.get('退出时间') || fields.get('试验完成/终止日期') || event.time).slice(0,10);
  return {history,fields,date,status:clinicalEventStatus(history)};
 }
 function openClinicalEvent(event) {
  const {fields,date,status}=clinicalEventModel(event);
  if (status==='已删除') return;
  const main=caseWorkspace.querySelector('.case-main');
- const title='临床事件记录 '+date;
+ const title=event.object+'记录 '+date;
  for (const section of [...main.children]) {
   if (!section.matches('.case-person,.case-tabs')) section.remove();
  }
@@ -687,16 +693,77 @@ function openClinicalEvent(event) {
   '<div class="crf-visit-tabs"><button type="button" id="eventHome">主页</button><strong>'+esc(title)+
   ' <button type="button" class="link" id="closeClinicalEvent" aria-label="关闭临床事件详情">×</button></strong></div>'+
   '<div class="case-event-heading"><h3>'+esc(title)+'</h3><span class="tag">'+esc(status)+'</span>'+
+  '<button type="button" class="link" id="editClinicalEvent">✎ 编辑</button>'+ 
   (status==='核查中'?'<button type="button" class="danger" id="deleteClinicalEvent">删除记录</button>':'')+'</div>'+
   '<div class="case-event-attachments"><strong>全部附件</strong><span class="muted">无附件</span></div>'+
-  '<div class="crf-body"><section class="case-event-content"><h3>临床事件</h3>'+renderEventInfo(event.object,fields)+
+  '<div class="crf-body"><section class="case-event-content"><h3>'+esc(event.object)+'</h3>'+renderEventInfo(event.object,fields)+
   '</section><aside class="crf-queries"><div class="query-heading"><h3>记录质疑</h3></div>'+
   '<p class="muted case-event-query-empty">暂无数据</p></aside></div>');
  const close=()=>showCases(event.subject);
  $('eventHome').onclick=close;
  $('closeClinicalEvent').onclick=close;
+ $('editClinicalEvent').onclick=()=>editEventRecord(event);
  if($('deleteClinicalEvent')) $('deleteClinicalEvent').onclick=()=>confirmClinicalEventDeletion(event);
  main.querySelector('.crf-visit-tabs').scrollIntoView({block:'start'});
+}
+function editEventRecord(event) {
+ const history = unitHistoryRows(event);
+ if (clinicalEventStatus(history)==='已删除') return;
+ const fields = [...eventBasicInfo(history)].filter(([name])=>!['核查状态','事件锁定状态'].includes(name));
+ const inputId = index => 'eventEditField'+index;
+ const inputs = fields.map(([name,value],index)=>{
+  let control;
+  if (['是否登记退出科研','受试者是否完成试验'].includes(name)) {
+   control = '<select id="'+inputId(index)+'">'+['是','否'].map(option=>'<option'+(value===option?' selected':'')+'>'+option+'</option>').join('')+'</select>';
+  } else if (name.endsWith('时间') || name.endsWith('日期')) {
+   control = '<input id="'+inputId(index)+'" type="datetime-local" step="1" required value="'+esc(String(value).replace(' ','T'))+'">';
+  } else {
+   control = '<textarea id="'+inputId(index)+'">'+esc(value)+'</textarea>';
+  }
+  return '<label for="'+inputId(index)+'">'+esc(name)+control+'</label>';
+ }).join('');
+ modal('<h2 class="event-delete-title">编辑'+esc(event.object)+'</h2><form id="eventEditForm">'+
+  '<div class="event-edit-fields">'+inputs+
+  '<label for="eventEditReason"><span><span class="event-edit-required">*</span> 修改原因</span>'+
+  '<textarea id="eventEditReason" required maxlength="200" placeholder="请输入修改原因"></textarea></label>'+
+  '<span class="event-edit-count" id="eventEditCount">0 / 200</span><div id="eventEditError" role="alert"></div></div>'+
+  '<div class="modalfoot"><button type="button" data-close="modalMask">取消</button><button type="submit" class="primary">保存</button></div></form>');
+ const reasonInput = $('eventEditReason');
+ reasonInput.oninput=()=>{$('eventEditCount').textContent=reasonInput.value.length+' / 200';};
+ $('eventEditForm').onsubmit=submit=>{
+  submit.preventDefault();
+  const reason = reasonInput.value.trim();
+  if (!reason || reasonInput.value.length>200) {
+   $('eventEditError').textContent=reason?'修改原因不能超过 200 字符。':'请填写修改原因。';
+   reasonInput.focus();
+   return;
+  }
+  const latest = unitHistoryRows(event);
+  if (clinicalEventStatus(latest)==='已删除') {
+   $('eventEditError').textContent='该事件已删除，无法保存修改。';
+   return;
+  }
+  if (latest[0]?.id!==history[0]?.id) {
+   $('eventEditError').textContent='事件信息已更新，请取消后重新打开编辑。';
+   return;
+  }
+  const changes = fields.map(([field,before],index)=>{
+   const input = $(inputId(index));
+   const after = input.type==='datetime-local' ? input.value.replace('T',' ') : input.value.trim();
+   return {field,before,after};
+  });
+  if (!changes.some(change=>String(change.before)!==change.after)) {
+   $('eventEditError').textContent='事件信息未发生变化。';
+   return;
+  }
+  const operation = {...event,id:'AUD-EVENT-EDIT-'+crypto.randomUUID(),module:'事件',type:'修改',
+   time:timestamp(),person:'当前用户（模拟）',role:'CRC',source:'科研工作台',reason,changes};
+  data.unshift(operation);
+  $('modalMask').classList.remove('open');
+  openClinicalEvent(operation);
+  render();
+  toast('事件修改已保存，可在事件历史中查看修改原因。');
+ };
 }
 function confirmClinicalEventDeletion(event) {
  if (clinicalEventStatus(unitHistoryRows(event))!=='核查中') return;
@@ -754,7 +821,7 @@ function openUnitHistory(context, field, operationId = '') {
  panel.innerHTML = '<div class="drawerhead"><div><h2>历史记录</h2><p>'+esc(context.subject)+' · '+esc(context.object)+
   '</p></div><button class="link" data-close="detailMask" aria-label="关闭历史记录">✕</button></div>'+
   '<div class="detail-body"><p class="muted">'+esc(context.project)+' · 按操作时间倒序</p>'+
-  '<p class="crf-history-field"><span>'+(context.questionnaire?'问卷':'指标 / 字段')+'</span><strong>'+esc(field)+'</strong></p>'+
+  '<p class="crf-history-field"><span>'+(context.recordLevel?'记录':context.questionnaire?'问卷':'指标 / 字段')+'</span><strong>'+esc(field)+'</strong></p>'+
   '<div id="unitHistoryEntries"></div></div>';
  const value = text => esc(text ?? '—');
  const entries = $('unitHistoryEntries');
@@ -892,7 +959,8 @@ $('rows').onclick=e=>{
  const name=row.object.split(' / ').at(-1);
  if(row.module==='SDV' || row.module==='CRF') {
   showCases(row.subject);
-  if (row.object.startsWith('基线记录 / ') && baselineUnits.includes(name)) showBaseline(name);
+  if (row.recordLevel) showBaseline('肝功能');
+  else if (row.object.startsWith('基线记录 / ') && baselineUnits.includes(name)) showBaseline(name);
  }
  openUnitHistory(row,row.questionnaire?name:change.field,row.id);
 };
@@ -914,18 +982,31 @@ showCases=function(subject=caseSubject){
  entry.setAttribute('aria-label','事件历史');
  entry.onclick=()=>openEventHistory($('project').value,subject);
  lane.append(entry);
- const events=eventHistoryOptions($('project').value,subject).filter(event=>event.object==='临床事件'&&event.type!=='删除');
- for (const event of events) {
+ const events=eventHistoryOptions($('project').value,subject).filter(event=>event.type!=='删除');
+ timeline.replaceChildren();
+ for (const event of events.slice(0,4)) {
   const {date,status}=clinicalEventModel(event);
   const button=document.createElement('button');
   button.type='button';
   button.className='timeline-event';
-  button.innerHTML='临床事件<br><small>'+esc(date)+'　'+esc(status)+'</small>';
+  button.innerHTML=esc(event.object)+'<br><small>'+esc(date)+'　'+esc(status)+'</small>';
   button.onclick=()=>openClinicalEvent(event);
   timeline.append(button);
  }
- if (!events.length) timeline.textContent='暂无临床事件';
+ if (!events.length) timeline.textContent='暂无事件';
 };
+// 演示同一事件在新增后编辑，随后继续参与核查流程。
+for (const [sourceId,time,reason,updates] of [
+ ['AUD-EVENT-REVIEW-ADD','2026-09-18 14:00:00','核对随访资料后补充临床事件具体原因（模拟）',{'MACE事件':'再入院-心力衰竭（补充住院记录）'}],
+ ['AUD-EVENT-LOST-DEMO','2026-11-16 10:00:00','根据电话随访补充失访原因（模拟）',{'失访原因':'多次电话联系未接通，暂无法完成随访（模拟）'}]
+]) {
+ const initial = data.find(row=>row.id===sourceId);
+ if (!initial) continue;
+ data.push({...initial,id:sourceId+'-EDIT',type:'修改',time,person:'模拟研究员甲',reason,
+  changes:initial.changes.map(change=>({
+   field:change.field,before:change.after,after:updates[change.field]??change.after
+  }))});
+}
 function expandDemoQualityChanges(rows) {
  // 模拟整单元锁定时，沿用数据稽查样例中的检验指标名称。
  const fieldsByUnit = new Map();
@@ -947,13 +1028,169 @@ function expandDemoQualityChanges(rows) {
  }
 }
 expandDemoQualityChanges(data);
+
+const ocrStyle = document.createElement('style');
+ocrStyle.textContent = [
+ '#modal:has(.ocr-dialog){width:min(1350px,96vw);max-width:96vw;padding:0;max-height:94vh;overflow:hidden;border-radius:5px}',
+ '.ocr-dialog{display:flex;flex-direction:column;max-height:94vh;color:#3c4c68}',
+ '.ocr-header{display:flex;align-items:center;gap:18px;padding:16px 18px;border-bottom:1px solid #e1e6ef}',
+ '.ocr-header h2{margin:0;font-size:18px;color:#172733}.ocr-header .link{margin-left:auto}',
+ '.ocr-body{display:grid;grid-template-columns:40% 60%;min-height:0;overflow:auto}',
+ '.ocr-source{padding:16px;border-right:1px solid #dce2ee}.ocr-body h3{margin:0 0 14px;font-size:16px}',
+ '.ocr-thumbnails{display:flex;gap:10px;overflow:auto;padding-bottom:12px}',
+ '.ocr-thumb{position:relative;flex:0 0 86px;height:88px;padding:5px;border:1px solid #d7deea;background:repeating-linear-gradient(0deg,#f5f6f7 0 5px,#dfe3e5 6px 7px);text-align:left;display:flex;flex-direction:column;justify-content:space-between}',
+ '.ocr-thumb.active{border-color:#3268fa;box-shadow:0 1px 5px #3268fa40}.ocr-thumb em{font-size:12px;font-style:normal;color:#00a5c9;background:white;border:1px solid #00a5c9;align-self:start}.ocr-thumb span{font-size:12px;background:#ffffffe0}',
+ '.ocr-preview-tabs{display:flex;margin-top:12px;background:#f5f7fa}.ocr-preview-tabs button{border-radius:0}.ocr-preview-tabs button.active{color:#3268fa;background:white}',
+ '.ocr-image{height:470px;overflow:auto;background:#f6f7f9;padding:18px;margin-top:10px;border-radius:6px}',
+ '.ocr-paper{min-height:410px;background:white;padding:26px 16px;box-shadow:0 1px 5px #0002;transform-origin:top left;font-size:11px;color:#59636d}',
+ '.ocr-paper h4{text-align:center;font-size:16px;margin:0 0 12px}.ocr-paper table{width:100%;font-size:10px}.ocr-paper td,.ocr-paper th{padding:7px 3px;position:static;white-space:normal}.ocr-paper p{line-height:2}',
+ '.ocr-zoom{display:flex;justify-content:flex-end;align-items:center;gap:8px;padding-top:8px}.ocr-zoom button{padding:2px 6px}',
+ '.ocr-data{padding:0 18px 18px}.ocr-label{margin:4px 0 12px}.ocr-tags{display:flex;flex-wrap:wrap;gap:8px}.ocr-tags span{padding:7px 10px;border:1px solid #d7deea;border-radius:4px}.ocr-tags .active{border-color:#3268fa;color:#3268fa;background:#f3f7ff}',
+ '.ocr-group{margin:22px 0}.ocr-group button{border-radius:0;text-align:left}.ocr-group button small{display:block;color:#8294a2}.ocr-group button.active{border-color:#3268fa;color:#3268fa;background:#f3f7ff}',
+ '.ocr-kidney{padding:12px;background:#f5f7fa;border-radius:6px}.ocr-kidney-inner{background:white;border-radius:6px;padding:18px 14px}',
+ '.ocr-date{display:flex;align-items:center;gap:18px;margin:18px 0}.ocr-date input{padding:8px 10px;border:1px solid #d7deea;border-radius:4px}',
+ '.ocr-results{width:100%;table-layout:fixed}.ocr-results th,.ocr-results td{padding:10px;text-align:left;position:static;white-space:normal;overflow-wrap:anywhere}.ocr-results input{width:100%;padding:8px;border:1px solid #d7deea;border-radius:4px}',
+ '.ocr-reason{display:block;margin-top:18px}.ocr-required{color:#f53f3f}.ocr-reason textarea{display:block;margin-top:8px;width:100%;min-height:80px;resize:vertical;padding:10px;border:1px solid #d7deea;border-radius:4px}.ocr-count{font-size:12px;color:#8997aa;text-align:right;margin-top:4px}',
+ '.ocr-footer{padding:16px 26px;display:flex;justify-content:flex-end;gap:12px;border-top:1px solid #e1e6ef}.ocr-error{color:#d44;margin-top:8px}',
+ '.crf-file-thumb{cursor:pointer}.crf-file-thumb:focus-visible{outline:2px solid #3268fa}',
+ '@media(max-width:850px){.ocr-body{grid-template-columns:1fr}.ocr-source{border-right:0;border-bottom:1px solid #dce2ee}.ocr-image{height:280px}.ocr-footer{flex-wrap:wrap}.ocr-header{flex-wrap:wrap}}'
+].join(String.fromCharCode(10));
+document.head.append(ocrStyle);
+const ocrKidneyFields = [
+ {id:'CREA',item:'肌酐',abbreviation:'Cr',value:'1.0',range:'44-106umol/L',unit:'μmol/L'},
+ {id:'UA',item:'尿酸',abbreviation:'UA',value:'3.0',range:'150-440umol/L',unit:'μmol/L'},
+ {id:'CysC',item:'胱抑素C',abbreviation:'CysC',value:'4.0',range:'0.6-2.5mg/L',unit:'mg/L'}
+];
+function openOcrEntry() {
+ if (editingUnit!==null) return toast('请先保存或取消当前单元修改');
+ const project=$('project').value, subject=caseSubject;
+ const previous=cloneGrid(getGrid('肾功能'));
+ const tags=['全血细胞分析','肝功能','肾功能','血糖测定','糖化血红蛋白','凝血检查','血脂全套','心肌酶谱','B型利钠肽','炎症指标','电解质','甲功五项','OGTT','快速血气','铁五项','白介素','骨代谢','血栓五项','尿β微球试验','尿蛋白-尿微量白蛋白24h','尿微量蛋白','尿蛋白定量','肿瘤相关抗原','尿常规+尿沉渣镜检','粪便常规','12导联心电图','动态心电图','心脏彩超'];
+ const attachments=['用药史','肾功能','合并用药','肾功能','手术记录','肝功能'];
+ const report='<div class="ocr-paper" id="ocrPaper"><h4>临床检验报告单</h4><p>受试者：'+esc(caseRecord(subject).name)+'　档案编号：'+esc(subject)+'<br>检验日期：2025-07-10　标本：血清</p><table><thead><tr><th>项目</th><th>结果</th><th>参考范围 / 单位</th></tr></thead><tbody>'+ocrKidneyFields.map(f=>'<tr><td>'+f.item+'</td><td>'+f.value+'</td><td>'+f.range+'</td></tr>').join('')+'</tbody></table><p>检验报告示例</p></div>';
+ modal('<div class="ocr-dialog"><header class="ocr-header"><h2>附件分类确认与OCR指标录入</h2><span class="muted">'+esc(caseRecord(subject).name)+' · 基线记录 2025-07-10</span><button class="link" type="button" data-close="modalMask" aria-label="关闭OCR指标录入">✕</button></header>'+
+  '<div class="ocr-body"><section class="ocr-source"><h3>全部附件(6)</h3><div class="ocr-thumbnails">'+attachments.map((name,i)=>'<button type="button" class="ocr-thumb'+(i===3?' active':'')+'" data-ocr-attachment="'+i+'"><em>'+(i===0?'SDV':'待录入')+'</em><span>'+name+'</span></button>').join('')+'</div>'+
+  '<div class="ocr-preview-tabs"><button type="button" class="active" data-ocr-view="image">原图</button><button type="button" data-ocr-view="values">OCR识别值</button></div><div class="ocr-image" id="ocrPreview">'+report+'</div>'+
+  '<div class="ocr-zoom"><button type="button" id="ocrZoomOut" aria-label="缩小">⊖</button><span id="ocrZoomValue">100%</span><button type="button" id="ocrZoomIn" aria-label="放大">⊕</button><button type="button" id="ocrZoomReset" aria-label="重置缩放">↻</button></div></section>'+
+  '<section class="ocr-data"><p class="ocr-label">二级分类标签</p><div class="ocr-tags">'+tags.map(t=>'<span class="'+(t==='肾功能'?'active':'')+'">'+t+'</span>').join('')+'</div><div class="ocr-group"><p>当前图片组</p><button type="button" data-ocr-group="1">肾功能P1<small>肾功能</small></button><button type="button" class="active" data-ocr-group="2">肾功能P2<small>肾功能</small></button></div>'+
+  '<form id="ocrEntryForm" class="ocr-kidney"><div class="ocr-kidney-inner"><h3><input type="checkbox" id="ocrKidneySelected" checked> 肾功能</h3><label class="ocr-date">日期<input type="date" id="ocrDate" required value="2025-07-10"></label>'+
+  '<table class="ocr-results"><thead><tr><th>检验项目</th><th>英文缩写</th><th>结果</th><th>正常参考范围/单位</th></tr></thead><tbody>'+ocrKidneyFields.map(f=>'<tr><td>'+f.item+'</td><td>'+f.abbreviation+'</td><td><input id="ocrResult'+f.id+'" aria-label="'+f.item+'结果" type="number" step="any" required value="'+f.value+'"></td><td>'+f.range+'</td></tr>').join('')+'</tbody></table>'+
+  '<label class="ocr-reason" for="ocrReason"><span class="ocr-required">*</span> 修改原因<textarea id="ocrReason" required maxlength="200" placeholder="请输入本次指标修改原因"></textarea></label><div class="ocr-count" id="ocrReasonCount">0 / 200</div><div class="ocr-error" id="ocrEntryError" role="alert"></div></div></form></section></div>'+
+  '<footer class="ocr-footer"><button type="button" data-close="modalMask">取消</button><button type="button" class="primary" id="ocrConfirmClassification">确认分类并标记SDV</button><button type="submit" form="ocrEntryForm" class="primary">确认并录入EDC</button></footer></div>');
+ const dialog=$('modal');
+ dialog.querySelectorAll('[data-ocr-attachment]').forEach(button=>button.onclick=()=>{
+  dialog.querySelectorAll('[data-ocr-attachment]').forEach(b=>b.classList.toggle('active',b===button));
+ });
+ dialog.querySelectorAll('[data-ocr-group]').forEach(button=>button.onclick=()=>{
+  dialog.querySelectorAll('[data-ocr-group]').forEach(b=>b.classList.toggle('active',b===button));
+ });
+ let zoom=100;
+ const setZoom=value=>{
+  zoom=Math.max(50,Math.min(150,value));
+  $('ocrZoomValue').textContent=zoom+'%';
+  const paper=$('ocrPaper');
+  if(paper) paper.style.transform='scale('+(zoom/100)+')';
+ };
+ $('ocrZoomOut').onclick=()=>setZoom(zoom-10);
+ $('ocrZoomIn').onclick=()=>setZoom(zoom+10);
+ $('ocrZoomReset').onclick=()=>setZoom(100);
+ dialog.querySelectorAll('[data-ocr-view]').forEach(button=>button.onclick=()=>{
+  dialog.querySelectorAll('[data-ocr-view]').forEach(b=>b.classList.toggle('active',b===button));
+  $('ocrPreview').innerHTML=button.dataset.ocrView==='image'?report:'<div class="ocr-paper"><h4>OCR识别值</h4>'+ocrKidneyFields.map(f=>'<p>'+f.item+'（'+f.abbreviation+'）：'+f.value+'　'+f.range+'</p>').join('')+'</div>';
+  setZoom(zoom);
+ });
+ $('ocrReason').oninput=()=>{$('ocrReasonCount').textContent=$('ocrReason').value.length+' / 200';};
+ $('ocrConfirmClassification').onclick=()=>{
+  const selected=dialog.querySelector('[data-ocr-attachment].active em');
+  if(selected) selected.textContent='SDV';
+  toast('附件已确认分类并标记SDV');
+ };
+ $('ocrEntryForm').onsubmit=event=>{
+  event.preventDefault();
+  const reason=$('ocrReason').value.trim();
+  if(!reason || $('ocrReason').value.length>200){
+   $('ocrEntryError').textContent=reason?'修改原因不能超过 200 字符。':'请填写修改原因。';
+   $('ocrReason').focus();
+   return;
+  }
+  if(!$('ocrKidneySelected').checked){$('ocrEntryError').textContent='请选择肾功能指标组。';return;}
+  const next=cloneGrid(previous), time=timestamp(), changes=[];
+  next.date=$('ocrDate').value;
+  if(next.date!==previous.date) changes.push({field:'检验日期',before:previous.date,after:next.date});
+  for(const field of ocrKidneyFields){
+   let row=next.rows.find(item=>item.id===field.id);
+   const before=row?.result??'—', after=$('ocrResult'+field.id).value.trim();
+   if(!after){$('ocrEntryError').textContent='请填写完整指标结果。';return;}
+   if(!row){row={id:field.id,item:field.item,unit:field.unit,result:after};next.rows.push(row);}
+   row.result=after;
+   if(before!==after) changes.push({field:field.item+'（'+field.id+'） / 结果',before,after});
+  }
+  if(!changes.length){$('ocrEntryError').textContent='指标数据未发生变化。';return;}
+  const key=project+'|'+subject+'|基线记录|肾功能';
+  gridData[key]={...next,person:'当前用户（模拟）',time};
+  data.unshift({id:'AUD-OCR-'+crypto.randomUUID(),project,subject,center:'模拟分中心一',module:'CRF',type:'修改',object:'基线记录 / 肾功能',objectId:key,changes,time,person:'当前用户（模拟）',role:'CRC',reason,source:'科研工作台'});
+  $('modalMask').classList.remove('open');
+  showBaseline('肾功能');
+  render();
+  toast('OCR指标已录入，修改原因已记录到历史中。');
+ };
+}
+
+const baselineRecordHistoryField = '基线记录';
+const baselineRecordContext = (project,subject) => ({
+ project,subject,object:'基线记录',objectId:project+'|'+subject+'|基线记录',recordLevel:true
+});
+data.push(...[
+ ['锁定','2026-09-17 16:00:00','未锁定','已锁定'],
+ ['解锁','2026-09-18 08:30:00','已锁定','未锁定']
+].map(([type,time,before,after],index)=>({
+ ...historyDemoContext,...baselineRecordContext('郑目','040001'),
+ id:'AUD-BASELINE-RECORD-'+index,module:'SDV',type,time,person:'模拟监察员乙',
+ role:'CRA',reason:'',changes:[{field:baselineRecordHistoryField,before,after}]
+})));
+function paintBaselineRecordHistory() {
+ const heading=caseWorkspace.querySelector('.crf-visit-heading');
+ if(!heading) return;
+ const context=baselineRecordContext($('project').value,caseSubject);
+ let entry=heading.querySelector('#baselineRecordHistory');
+ if(!entry){
+  entry=document.createElement('button');
+  entry.id='baselineRecordHistory';
+  entry.type='button';
+  entry.className='unit-history-icon';
+  entry.dataset.recordHistory='';
+  const status=heading.querySelector('.crf-status');
+  heading.insertBefore(entry,status);
+ }
+ entry.innerHTML=indicatorHistoryIcon;
+ entry.title='查看基线记录历史记录';
+ entry.setAttribute('aria-label',entry.title);
+ entry.style.cssText='display:inline-flex;vertical-align:middle;margin-left:10px;width:32px;height:32px;color:#658296;visibility:visible;opacity:1';
+ entry.onclick=()=>openUnitHistory(context,baselineRecordHistoryField);
+}
+
+const baselineWithOcr = showBaseline;
+showBaseline = function(name='入院记录', scrollBehavior='smooth') {
+ baselineWithOcr(name,scrollBehavior);
+ paintBaselineRecordHistory();
+ for(const thumb of caseWorkspace.querySelectorAll('.crf-attachments .crf-file-thumb')){
+  thumb.setAttribute('role','button');
+  thumb.tabIndex=0;
+  thumb.title='附件分类确认与OCR指标录入';
+  thumb.onclick=openOcrEntry;
+  thumb.onkeydown=event=>{
+   if(event.key==='Enter' || event.key===' '){event.preventDefault();openOcrEntry();}
+  };
+ }
+};
+
 render();
 
 </script>
 <div id="auditAnnotationPins"></div>
 <svg id="auditAnnotationLink" aria-hidden="true"></svg>
 <button type="button" id="auditAnnotationToggle" aria-controls="auditAnnotationPanel" aria-expanded="false">批注</button>
-<script id="auditAnnotationState" type="application/json">{"documentId":"hrt-audit-annotations-2026","revision":"7f39df49-e96a-4040-a520-a63c5d535212","nextId":12,"notes":[{"id":1,"selector":"#auditNav","title":"稽查入口","sections":{"定义与范围":"从顶部导航进入稽查，查看谁在何时对哪个项目、受试者及记录执行了什么操作，核对变更前后值及适用的操作原因。","待确认":"","演示假设":"","权限说明":"稽查入口对全体角色可见。日志数据沿用已有项目和分中心权限。"}},{"id":3,"selector":"#tabs","title":"稽查页签","sections":{"定义与范围":"1、数据稽查包含CRF 与事件的增删改。事件示例包含临床事件、失访事件、退出事件和终点事件。\n2、质控稽查记录单元锁定、解锁及临床事件的核查通过及锁定解锁。\n\n","交互规则":"默认展示数据稽查。切换页签回到第一页，并清除该页签不适用的操作类型。","待确认":"项目与研究用药的操作范围待确认，本期不做。","加载逻辑":"1、数据稽查本期仅做“检查”下的所有单元及事件的记录\n2、质控稽查本期做所有单元及事件的记录"}},{"id":6,"selector":"#projectScope","title":"科研项目","sections":{"定义与范围":"每次查看一个科研项目。项目必选、单选，初始默认选中一个项目。","加载逻辑":"切换项目立即查询该项目的日志，同时清空其他条件、刷新分中心选项、回到数据稽查第一页。","交互规则":"点击重置清空其他筛选条件，保留当前项目和页签。","权限说明":"项目及分中心选项应来自用户已有的数据权限。","状态与异常":"若当前人员无科研项目时，科研项目列表为空，下方展示暂无数据","排序与数量":"加载当前角色参与的所有科研项目（排除初始化状态的项目）；\n（1）按照”立项申报——受试者招募——研究实施——评估总结——项目暂停——项目结束“的顺序排列；\n（2）同一状态下再按照项目创建的先后顺序逆序排列。"},"page":"audit"},{"id":9,"selector":"#role","page":"audit","title":"操作人员角色筛选","sections":{"定义与范围":"操作人员角色包含全部、PI、PM、CRA、CRC、DM、系统（单选）\n","状态与异常":"若存在CRO/CRA操作的数据，CRO记录为CRA；SMO记录为CRC。"}},{"id":2,"selector":"#filterSection","title":"筛选区域","sections":{"页面元素":"1、基础筛选包含科研项目、分中心、受试者档案编号和操作时间。展开后可按操作类型、操作人员、修改对象和操作人员角色筛选。\n2、操作类型为单选，选项随上方页签切换。数据稽查包含全部、新增、修改、删除；质控稽查包含全部、锁定、解锁、核查通过；","加载逻辑":"1、每次查询一个项目。切换项目立即生效，其他条件点击查询后生效，分中心选项随项目联动变更\n2、档案编号、操作人员和修改对象按输入文字匹配，修改对象匹配记录、单元或字段名称。","交互规则":"日期按自然日筛选，含首尾；开始日期晚于结束日期时提示调整。点击重置保留当前项目和页签。","演示假设":""},"page":"audit"},{"id":4,"selector":"#tableWrap","title":"日志列表与历史定位","sections":{"页面元素":"1、数据稽查和质控稽查两者均显示操作时间、受试者、项目、分中心、操作类型、记录/单元、指标/字段、操作人员、角色及来源。\n2、数据稽查另展示操作原因；\n3、操作来源表示发起平台或渠道。包括科研工作台、科研项目管理、哈瑞特健康、哈瑞特工作室、哈瑞特员工、哈瑞特医疗和数据同步。","交互规则":"1、数据稽查和质控稽查均从「指标 / 字段」进入对应病例的历史，打开后自动筛选并定位到该次操作。数据稽查及质控稽查的事件均按事件类型进入事件历史，并定位到所点击的操作。\n2、较长的变更值采用...的形式进行省略，鼠标悬浮进行查看。（项目名称、分中心名称、记录/单元、操作原因）","排序与数量":"按操作时间倒序，每页默认10条","状态与异常":"无匹配记录时显示当前无数据"}},{"id":5,"selector":"#crfUnit13 > div:nth-of-type(1)","title":"病例编辑与单元历史","sections":{"交互规则":"修改已配置的 CRF 单元时须填写修改原因，最多 200 字符。保存后按变化字段记录；无变化或取消时不生成日志。","排序与数量":"","状态与异常":"","演示假设":""},"page":"baseline"},{"id":8,"page":"history","selector":".drawerhead","title":"历史记录 · 页面元素与显示规则","sections":{"定义与范围":"查看当前项目、受试者与记录或单元的变更历史。","页面元素":"1、顶部显示受试者档案编号、记录或单元名称、项目名称和排序提示、当前指标或字段。\n2、每张卡片显示操作类型、操作时间（YYYY-MM-DD HH:mm:ss）、操作人员、操作时的角色和来源。\n3、数据稽查示例类型为新增、修改、删除，质控示例为锁定、解锁、核查通过。\n4、未采集的来源显示为“--”。CRF 历史卡片以文字展示修改前后的值，修改和删除记录下方另显示对应原因。未采集原因时显示「历史数据未采集」。","交互规则":"1、从稽查列表进入时，选中对应的指标/字段。点击右上角关闭按钮、遮罩退出。","排序与数量":"按操作时间从新到旧展示。每次操作一张卡片，展示当前指标在该次操作中的修改前后值。侧栏可滚动，不分页。","状态与异常":"没有历史记录或没有匹配的变更时，显示「暂无历史记录」。","事件规则":""}},{"id":10,"page":"eventDelete","selector":"#eventDeleteForm","title":"删除事件记录","sections":{"定义与范围":"临床事件详情中，核查中的事件可删除。","页面元素":"删除原因必填，以红色星号标识，最多 200 字符。输入框下方实时显示字符数。底部提供「取消」和「确认删除」。","交互规则":"取消后关闭弹窗。确认删除成功后回到病例主页，随机事件中移除该记录。事件历史保留删除前的事件信息、删除原因及操作信息。","状态与异常":"原因为空、仅有空格或超过 200 字符时，保留弹窗并提示。提交时再次判断事件是否仍为核查中。"}},{"id":11,"page":"eventHistory","selector":".drawerhead","title":"事件历史 · 查看规则","sections":{"定义与范围":"查看当前项目、当前病例的事件操作历史，包含已删除事件。","页面元素":"顶部显示病例档案编号、项目和事件类型筛选。可查看全部事件，或筛选临床事件、失访事件、退出事件和终点事件。卡片上方展示操作类型、时间、人员、角色和平台，下方展示本次操作对应的完整事件信息。删除卡片另显示删除原因，核查通过卡片也展示事件信息。","交互规则":"从病例主页「随机事件」下方的历史图标进入，默认查看全部事件类型。从稽查列表进入时选中对应事件类型并定位该次操作。点击右上角关闭或遮罩即可退出。","排序与数量":"按操作时间倒序排列。","状态与异常":"没有匹配的事件记录时显示「暂无历史记录」。"}}]}</script>
+<script id="auditAnnotationState" type="application/json">{"documentId":"hrt-audit-annotations-2026","revision":"81bf695c-49c2-4ee6-9197-ba89a61e8131","nextId":15,"notes":[{"id":1,"selector":"#auditNav","title":"稽查入口","sections":{"定义与范围":"从顶部导航进入稽查，查看谁在何时对哪个项目、受试者及记录执行了什么操作，核对变更前后值及适用的操作原因。","待确认":"","演示假设":"","权限说明":"稽查入口对全体角色可见。日志数据沿用已有项目和分中心权限。"}},{"id":3,"selector":"#tabs","title":"稽查页签","sections":{"定义与范围":"1、数据稽查包含CRF 与事件的增删改。事件包含临床事件、失访事件、退出事件和终点事件。\n2、质控稽查包含记录的锁定/解锁、单元的锁定/解锁、临床事件的核查通过及锁定/解锁。\n\n","交互规则":"默认展示数据稽查。切换页签回到第一页，并清除该页签不适用的操作类型。","待确认":"项目与研究用药的操作范围待确认，本期不做。","加载逻辑":"1、数据稽查本期仅做“检查”下的所有单元及事件的增删改记录\n2、质控稽查本期做所有访视记录、单元及事件的锁定解锁和核查通过。"}},{"id":6,"selector":"#project","title":"科研项目","sections":{"定义与范围":"每次查看一个科研项目。项目必选、单选，初始默认选中一个项目。","加载逻辑":"切换项目立即查询该项目的日志，同时清空其他条件、刷新分中心选项、回到数据稽查第一页。","交互规则":"点击重置清空其他筛选条件，保留当前项目和页签。","权限说明":"项目及分中心选项应来自用户已有的数据权限。","状态与异常":"若当前人员无科研项目时，科研项目列表为空，下方展示暂无数据","排序与数量":"加载当前角色参与的所有科研项目（排除初始化状态的项目）；\n（1）按照”立项申报——受试者招募——研究实施——评估总结——项目暂停——项目结束“的顺序排列；\n（2）同一状态下再按照项目创建的先后顺序逆序排列。"},"page":"audit"},{"id":9,"selector":"#role","page":"audit","title":"操作人员角色筛选","sections":{"定义与范围":"操作人员角色包含全部、PI、PM、CRA、CRC、DM、系统（单选）\n","状态与异常":"若存在CRO/CRA操作的数据，CRO记录为CRA；SMO记录为CRC。"}},{"id":2,"selector":"#filterSection","title":"筛选区域","sections":{"页面元素":"1、基础筛选包含科研项目、分中心、受试者档案编号和操作时间。展开后可按操作类型、操作人员、修改对象和操作人员角色筛选。\n2、操作类型为单选，选项随上方页签切换。数据稽查包含全部、新增、修改、删除；质控稽查包含全部、锁定、解锁、核查通过；","加载逻辑":"1、每次查询一个项目。切换项目立即生效，其他条件点击查询后生效，分中心选项随项目联动变更\n2、档案编号、操作人员和修改对象按输入文字匹配，修改对象匹配记录、单元或字段名称。","交互规则":"日期按自然日筛选，含首尾；开始日期晚于结束日期时提示调整。点击重置保留当前项目和页签。","演示假设":""},"page":"audit"},{"id":4,"selector":"#tableWrap","title":"日志列表与历史定位","sections":{"页面元素":"1、数据稽查和质控稽查两者均显示操作时间、受试者、项目、分中心、操作类型、记录/单元、指标/字段、操作人员、角色及来源。\n2、数据稽查另展示操作原因；\n3、操作来源表示发起平台或渠道。包括科研工作台、科研项目管理、哈瑞特健康、哈瑞特工作室、哈瑞特员工、哈瑞特医疗和数据同步。","交互规则":"1、数据稽查和质控稽查均从「指标 / 字段」进行病例页面的跳转，定位到具体对象并打开该指标的历史记录。数据稽查及质控稽查的事件均按事件类型进入事件历史。\n2、较长的变更值采用...的形式进行省略，鼠标悬浮进行查看。（项目名称、分中心名称、记录/单元、操作原因）","排序与数量":"按操作时间倒序，每页默认10条","状态与异常":"1、无匹配记录时显示当前无数据\n2、当用户无“病例”的权限时，点击“指标/字段”时，不进行跳转，在稽查页面以抽屉的形式进行打开。"}},{"id":5,"selector":"#crfUnit13 > div:nth-of-type(1)","title":"单元编辑新增修改原因","sections":{"交互规则":"1、修改已配置的 CRF 单元时须填写修改原因，最多 200 字符。","排序与数量":"","状态与异常":"","演示假设":""},"page":"baseline"},{"id":14,"page":"ocr","selector":".ocr-reason","title":"OCR 指标录入 · 修改原因","sections":{"定义与范围":"OCR指标录入时，增加“修改原因”字段，200字符，\nOCR的单元为新增时，无需修改原因，编辑时，出现修改原因。","页面元素":"","交互规则":"点击「确认并录入 EDC」时校验修改原因和指标数据。录入成功后，将修改原因随同本次变化字段、修改前后值、操作时间、操作人员、角色和平台写入稽查及指标历史。","状态与异常":"原因为空或仅包含空格时提示填写；超过 200 字符时不允许提交。"}},{"id":12,"selector":"#editClinicalEvent","page":"case","title":"事件编辑","sections":{"定义与范围":"事件编辑时，新增“修改原因”，200字符"}},{"id":10,"page":"eventDelete","selector":"#eventDeleteForm","title":"删除事件记录","sections":{"定义与范围":"临床事件详情中，核查中的事件可删除。","页面元素":"删除原因必填，以红色星号标识，最多 200 字符。输入框下方实时显示字符数。底部提供「取消」和「确认删除」。","交互规则":"取消后关闭弹窗。确认删除成功后回到病例主页，随机事件中移除该记录。事件历史保留删除前的事件信息、删除原因及操作信息。","状态与异常":"原因为空、仅有空格或超过 200 字符时，保留弹窗并提示。提交时再次判断事件是否仍为核查中。"}},{"id":8,"page":"history","selector":".drawerhead","title":"历史记录 · 页面元素与显示规则","sections":{"定义与范围":"查看当前项目、受试者与记录或单元的变更历史。","页面元素":"1、顶部显示受试者档案编号、记录或单元名称、项目名称和排序提示、当前指标或字段。\n2、每张卡片显示操作类型、操作时间（YYYY-MM-DD HH:mm:ss）、操作人员、操作时的角色和来源。\n3、数据稽查示例类型为新增、修改、删除，质控示例为锁定、解锁、核查通过。\n4、CRF 历史卡片以文字展示修改前后的值，修改和删除记录下方另显示对应原因。","交互规则":"1、从稽查列表进入时，选中对应的指标/字段。点击右上角关闭按钮、遮罩退出。","排序与数量":"按操作时间从新到旧展示。每次操作一张卡片，展示当前指标在该次操作中的修改前后值。侧栏可滚动，不分页。","状态与异常":"没有历史记录或没有匹配的变更时，显示「暂无历史记录」。","事件规则":""}},{"id":11,"page":"eventHistory","selector":".drawerhead","title":"事件历史 · 查看规则","sections":{"定义与范围":"查看当前项目、当前病例的事件操作历史，包含已删除事件。","页面元素":"顶部显示病例档案编号、项目和事件类型筛选。可查看全部事件，或筛选临床事件、失访事件、退出事件和终点事件。卡片上方展示操作类型、时间、人员、角色和平台，下方展示本次操作对应的完整事件信息。删除/修改事件后另显示删除/修改原因，核查通过卡片也展示事件信息。","交互规则":"从病例主页「随机事件」下方的历史图标进入，默认查看全部事件类型。从稽查列表进入时选中对应事件类型。点击右上角关闭或遮罩即可退出。","排序与数量":"按操作时间倒序排列。","状态与异常":"没有匹配的事件记录时显示「暂无历史记录」。"}},{"id":13,"selector":"#caseWorkspace > div:nth-of-type(1) > div:nth-of-type(4) > span:nth-of-type(1)","page":"baseline","title":"查看访视记录历史记录","sections":{"定义与范围":"访视记录的历史记录-点击图标后查看该记录的锁定/解锁记录"}}]}</script>
 <script id="auditAnnotationCode">
 (() => {
   const get = id => document.getElementById('auditAnnotation' + id);
@@ -974,7 +1211,7 @@ render();
   let locateFrame = 0;
   try {
     const cached = JSON.parse(localStorage.getItem(cacheKey));
-    const previousRevision = '7b0965f6-42e4-47d0-b3de-3c91f562a3f7';
+    const previousRevision = '6272183d-d973-483f-b0ab-dcf0148be2af';
     if (cached?.state?.documentId === initial.documentId &&
         [baseRevision, previousRevision].includes(cached.baseRevision)) {
       state = cached.state;
@@ -982,7 +1219,7 @@ render();
       if (cached.baseRevision === previousRevision) {
         state.revision = baseRevision;
         state.nextId = Math.max(state.nextId, (draft?.id || 0) + 1);
-        for (const note of initial.notes.filter(item => item.id >= 10)) {
+        for (const note of initial.notes.filter(item => item.id >= 14)) {
           state.notes.push({...structuredClone(note), id:state.nextId++});
         }
       }
@@ -1012,11 +1249,15 @@ render();
   function eventDeletionDialog() {
     return document.querySelector('#modalMask.open #modal:has(#eventDeleteForm)');
   }
+  function ocrDialog() {
+    return document.querySelector('#modalMask.open #modal:has(#ocrEntryForm)');
+  }
   function historyPage(drawer) {
     return drawer.querySelector('#historyIndicator') ? 'eventHistory' : 'history';
   }
   function annotationRoot(page) {
     if (page === 'eventDelete') return eventDeletionDialog();
+    if (page === 'ocr') return ocrDialog();
     if (page === 'history' || page === 'eventHistory') {
       const drawer = historyDrawer();
       return drawer && historyPage(drawer) === page ? drawer : null;
@@ -1028,13 +1269,16 @@ render();
   }
   function currentPage() {
     if (eventDeletionDialog()) return 'eventDelete';
+    if (ocrDialog()) return 'ocr';
     const drawer = historyDrawer();
     if (drawer) return historyPage(drawer);
     if (caseWorkspace.hidden) return 'audit';
+    if (caseWorkspace.querySelector('#eventHome')) return 'eventDetail';
     return caseWorkspace.querySelector('#crfUnits') ? 'baseline' : 'case';
   }
   function pageFor(element) {
     if (eventDeletionDialog()?.contains(element)) return 'eventDelete';
+    if (ocrDialog()?.contains(element)) return 'ocr';
     const drawer = historyDrawer();
     if (drawer?.contains(element)) return historyPage(drawer);
     if (element?.closest('#nav')) return 'shared';
@@ -1042,6 +1286,7 @@ render();
     return 'audit';
   }
   function notePage(note) {
+    if (note.selector === '#editClinicalEvent') return 'eventDetail';
     if (note.page) return note.page;
     if (/^#(?:auditNav|nav)\b|^\[data-nav=/.test(note.selector)) return 'shared';
     if (/^#(?:crfUnit\d*|crfField\d*|crfUnits|crfHome|closeBaseline|grid\w+)\b/.test(note.selector)) return 'baseline';
@@ -1055,7 +1300,11 @@ render();
   function previewAnnotationPage(page) {
     const project = $('project').value;
     const events = eventHistoryOptions(project, caseSubject);
-    if (page === 'history') {
+    if (page === 'ocr') {
+      showCases(caseSubject);
+      showBaseline('肾功能', 'instant');
+      openOcrEntry();
+    } else if (page === 'history') {
       const sample = data.find(row => row.id === 'AUD-LIVER-MULTI-20260917');
       if (!sample) return;
       $('project').value = sample.project;
@@ -1076,7 +1325,7 @@ render();
       $('project').value = event.project;
       showCases(event.subject);
       openClinicalEvent(event);
-      confirmClinicalEventDeletion(event);
+      if (page === 'eventDelete') confirmClinicalEventDeletion(event);
     }
   }
   function locate(note) {
@@ -1089,7 +1338,7 @@ render();
     if (overlay !== product && current !== page) overlay?.closest('.mask')?.classList.remove('open');
     if (!onCurrentPage(note)) {
       if (editingUnit !== null) return message('请先保存或取消当前单元的修改。');
-      if (['history','eventHistory','eventDelete'].includes(page)) previewAnnotationPage(page);
+      if (['history','eventHistory','eventDelete','eventDetail','ocr'].includes(page)) previewAnnotationPage(page);
       else if (page === 'audit') showAudit();
       else {
         showCases(caseSubject);
